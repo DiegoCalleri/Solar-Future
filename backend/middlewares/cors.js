@@ -1,7 +1,6 @@
-const allowedCors = [
-    	'http://127.0.0.1:3000',
-	'https://amirowdenis.ru',
-];
+const allowedCors = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)
+  : ['http://127.0.0.1:3000', 'https://amirowdenis.ru'];
 
 function cors(req, res, next) {
     const { origin } = req.headers;
