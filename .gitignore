@@ -3,3 +3,4 @@
 /mongo/db/
 /api/node_modules
 /api/compass-export/
+deploy_*
