@@ -1,4 +1,4 @@
-export const BASE_URL = 'https://amirowdenis.online/api';
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const endpoints = {
   switch: `${BASE_URL}/digital_pins/action`,
