@@ -9,7 +9,7 @@ RUN npm config set fetch-retries 5 && \
 RUN --mount=type=cache,target=/root/.npm \
     npm install
 COPY . .
+RUN npm run build
 EXPOSE 3000
 
-
-CMD ["npm","run","dev"]
+CMD ["npm", "run", "start"]
