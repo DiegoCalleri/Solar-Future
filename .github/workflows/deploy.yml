@@ -20,5 +20,4 @@ jobs:
             export NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}"
             cd ~/Solar-Future
             git pull origin main
-            docker compose pull
-            docker compose up -d --build
+            docker compose up -d --build --force-recreate
