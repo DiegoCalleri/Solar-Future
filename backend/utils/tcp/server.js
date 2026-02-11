@@ -51,35 +51,84 @@ const server = net.createServer((socket) => {
             }
             console.log(`   ASCII:  ${asciiData}`);
             
-            // Безопасная отправка ответа с обработкой ошибок
-            try {
-                // Проверяем, что сокет еще открыт и готов к записи
-                if (socket.destroyed || !socket.writable) {
-                    console.error(`[${timestamp}] ❌ Сокет закрыт или не готов к записи`);
-                    return;
-                }
+            // Парсим данные от модема/Arduino
+            const command = textData.trim();
+            let response = null;
+            
+            // Обработка данных от модема/Arduino
+            if (command.startsWith('D') && command.length >= 5) {
+                // Команда управления digital pin от модема (формат: D0701 = D + pin 07 + state 01)
+                // Это запрос от модема - нужно отправить команду управления обратно на модем
+                const pinStr = command.substring(1, 3);
+                const actionStr = command.substring(3, 5);
+                const pinNumber = parseInt(pinStr);
+                const action = parseInt(actionStr);
                 
-                // Отправляем ответ с переносом строки для Arduino Serial
-                const response = 'Понг!!!\r\n';
-                console.log(`[${timestamp}] 📤 Отправка ответа: "${response.trim()}"`);
+                console.log(`[${timestamp}] 📋 Получен запрос команды управления digital pin: ${command}`);
+                console.log(`[${timestamp}]    Парсинг: pin=${pinNumber}, action=${action}`);
                 
-                socket.write(response, 'utf8', (err) => {
-                    if (err) {
-                        console.error(`[${timestamp}] ❌ Ошибка отправки ответа:`, err.message);
-                    } else {
-                        console.log(`[${timestamp}] ✅ Ответ успешно отправлен: "${response.trim()}"`);
-                        // Принудительно сбрасываем буфер отправки
-                        if (socket.writable) {
-                            socket.setNoDelay(true); // Отключаем алгоритм Nagle для немедленной отправки
-                        }
+                // Отправляем команду управления обратно на модем для передачи в Arduino
+                // Формат: D + номер_пина(2 цифры) + действие(2 цифры) + \r\n
+                response = command + '\r\n';
+                console.log(`[${timestamp}] 📤 Отправка команды управления на модем: "${response.trim()}"`);
+                
+            } else if (command.startsWith('A') && command.length >= 2) {
+                // Команда чтения аналогового датчика от модема (формат: A0, A1 и т.д.)
+                const sensorNumber = command.substring(1);
+                console.log(`[${timestamp}] 📋 Получен запрос команды чтения аналогового датчика: ${command}`);
+                console.log(`[${timestamp}]    Номер датчика: ${sensorNumber}`);
+                
+                // Отправляем команду чтения обратно на модем для передачи в Arduino
+                response = command + '\r\n';
+                console.log(`[${timestamp}] 📤 Отправка команды чтения на модем: "${response.trim()}"`);
+                
+            } else if (!isNaN(parseFloat(command)) && (command === '200' || command === '400')) {
+                // Ответ от Arduino после выполнения команды digital pin
+                // "200" = HIGH (включено), "400" = LOW (выключено)
+                console.log(`[${timestamp}] ✅ Получен ответ от Arduino (digital pin): ${command}`);
+                console.log(`[${timestamp}]    Статус: ${command === '200' ? 'HIGH (включено)' : 'LOW (выключено)'}`);
+                // Не отправляем ответ - это данные от Arduino
+                response = null;
+                
+            } else if (!isNaN(parseFloat(command)) && command.includes('.')) {
+                // Числовое значение с точкой - это данные от аналогового датчика (например, "12.34")
+                const voltage = parseFloat(command);
+                console.log(`[${timestamp}] ✅ Получены данные от аналогового датчика: ${command}`);
+                console.log(`[${timestamp}]    Напряжение: ${voltage} В`);
+                // Не отправляем ответ - это данные от Arduino
+                response = null;
+                
+            } else {
+                // Неизвестная команда или формат
+                console.log(`[${timestamp}] ⚠️  Неизвестный формат данных: ${command}`);
+                // Не отправляем ответ на неизвестные данные
+                response = null;
+            }
+            
+            // Отправляем команду управления на модем только если это запрос команды
+            if (response) {
+                try {
+                    // Проверяем, что сокет еще открыт и готов к записи
+                    if (socket.destroyed || !socket.writable) {
+                        console.error(`[${timestamp}] ❌ Сокет закрыт или не готов к записи`);
+                        return;
                     }
-                });
-                
-                // Дополнительная задержка для гарантии отправки данных
-                // НЕ закрываем соединение - пусть модем сам решает когда закрывать
-                
-            } catch (writeErr) {
-                console.error(`[${timestamp}] ❌ Ошибка при записи:`, writeErr.message);
+                    
+                    console.log(`[${timestamp}] 📡 Отправка команды управления на модем...`);
+                    socket.write(response, 'utf8', (err) => {
+                        if (err) {
+                            console.error(`[${timestamp}] ❌ Ошибка отправки команды на модем:`, err.message);
+                        } else {
+                            console.log(`[${timestamp}] ✅ Команда управления успешно отправлена на модем: "${response.trim()}"`);
+                            // Отключаем алгоритм Nagle для немедленной отправки
+                            if (socket.writable) {
+                                socket.setNoDelay(true);
+                            }
+                        }
+                    });
+                } catch (writeErr) {
+                    console.error(`[${timestamp}] ❌ Ошибка при записи команды на модем:`, writeErr.message);
+                }
             }
         } catch (err) {
             console.error(`[${getTimestamp()}] ❌ Ошибка обработки данных:`, err.message);
