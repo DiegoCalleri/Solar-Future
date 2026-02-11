@@ -15,20 +15,26 @@ const findUserById = async (req, res, next) => {
     console.log("GET /users/:id");
     try {
         req.user = await users.findById(req.params.id);
+        if (!req.user) {
+            return res.status(404).send({ message: "Пользователь не найден" });
+        }
         next();
     }
     catch (err) {
-        res.status(404).send({ message: "Пользователь не найден" })
+        return res.status(404).send({ message: "Пользователь не найден" });
     }
 }
 
 const findUserByIdDataFromBodyGET = async (req, res, next) => {
     try {
         req.user = await users.findById(req.body._id);
+        if (!req.user) {
+            return res.status(404).send({ message: "Пользователь не найден" });
+        }
         next();
     }
     catch (err) {
-        res.status(404).send({ message: "Пользователь не найден" })
+        return res.status(404).send({ message: "Пользователь не найден" });
     }
 }
 
@@ -40,26 +46,28 @@ const createUser = async (req, res, next) => {
         next();
     }
     catch (err) {
-        res.status(400).send({ message: "Ошибка при создании пользователя" })
+        return res.status(400).send({ message: "Ошибка при создании пользователя" });
     }
 }
 
 const updateUser = async (req, res, next) => {
     console.log("PUT /users/:id");
     try {
-        req.user = await users.findByIdAndUpdate(req.params.id, req.body)
-        next()
+        req.user = await users.findByIdAndUpdate(req.params.id, req.body);
+        if (!req.user) {
+            return res.status(404).send({ message: "Пользователь не найден" });
+        }
+        next();
     }
-
     catch (err) {
-        res.status(404).send({ message: "Ошибка при обновлении пользователя" })
+        return res.status(404).send({ message: "Ошибка при обновлении пользователя" });
     }
 }
 
 
 const checkEmptyNameAndEmail = async (req, res, next) => {
     if (!req.body.username || !req.body.email || !req.body.password) {
-        res.status(400).send({ message: "Введите имя, email и password" });
+        return res.status(400).send({ message: "Введите имя, email и password" });
     } else {
         next();
     }
@@ -70,9 +78,12 @@ const deleteUser = async (req, res, next) => {
     console.log("DELETE /users/:id");
     try {
         req.user = await users.findByIdAndDelete(req.params.id);
+        if (!req.user) {
+            return res.status(404).send({ message: "Пользователь не найден" });
+        }
         next();
     } catch (error) {
-        res.status(400).send({ message: "Ошибка при удалении пользователя" });
+        return res.status(400).send({ message: "Ошибка при удалении пользователя" });
     }
 };
 
@@ -86,7 +97,7 @@ const hashPassword = async(req, res, next) => {
     }
 
     catch (err) {
-        res.status(400).send({ message: "Ошибка хеширования пароля" })
+        return res.status(400).send({ message: "Ошибка хеширования пароля" });
     }
 }
 
@@ -96,16 +107,22 @@ const findUserByIdDevices = async (req, res, next) => {
         req.user = await users.findById(req.params.id)
             .populate('digital_pins')
             .populate('analog_sensors');
-        if (!req.user) { throw new Error('Пользователь не найден') }
+        if (!req.user) {
+            return res.status(404).send({ message: "Пользователь не найден" });
+        }
         next();
     }
     catch (err) {
-        res.status(404).send({ message: "Пользователь не найден" })
+        return res.status(404).send({ message: "Пользователь не найден" });
     }
 }
 
 
 const checkUserIsAdmin = (req, res, next) => {
+    if (!req.user) {
+        return res.status(404).send({ message: "Пользователь не найден" });
+    }
+    
     if (req.user.role == 'admin') {
         next()
     }
