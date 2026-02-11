@@ -20,6 +20,11 @@
   display: block;
 }
 
+.popup__box {
+  position: relative;
+  transform-origin: center center;
+}
+
 .close {
   background-color: transparent;
   border: none;

@@ -19,7 +19,6 @@ export const Header = () => {
 
   useEffect(() => {
     user ? setIsAuthorized(true) : setIsAuthorized(false)
-    console.log(user, isAuthorized, 'user')
   }, [user])
 
 

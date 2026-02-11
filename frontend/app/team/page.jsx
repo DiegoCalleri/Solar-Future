@@ -1,9 +1,5 @@
-import { Gallery } from "../components/Gallery/Gallery"
+import { Gallery } from '../components/Gallery/Gallery'
 
-export default function Page() {
-    return (
-        <>
-            <Gallery />
-        </>
-    )
+export default function TeamPage() {
+  return <Gallery />
 }

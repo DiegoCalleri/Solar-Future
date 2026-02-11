@@ -14,7 +14,6 @@ export const MyCard = (props) => {
     if (props.params == 'digital_pins') {
       const res = await POST(endpoints.switch, { ...props.data, switchOn: params })
       res.data == 200 ? setState(true) : setState(false)
-      console.log(state)
     }
   }
 

@@ -1,50 +1,250 @@
-.gallery__main {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    align-items: center;
-    justify-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 80vh;
+.gallery {
+  --gallery-bg: linear-gradient(160deg, #0f172a 0%, #1e293b 40%, #334155 100%);
+  --gallery-surface: rgba(255, 255, 255, 0.06);
+  --gallery-surface-hover: rgba(255, 255, 255, 0.1);
+  --gallery-border: rgba(255, 255, 255, 0.08);
+  --gallery-accent: #38bdf8;
+  --gallery-accent-soft: rgba(56, 189, 248, 0.25);
+  --gallery-text: #e2e8f0;
+  --gallery-text-muted: #94a3b8;
+  --gallery-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  --gallery-radius: 20px;
+  --gallery-radius-sm: 12px;
 
+  min-height: 80vh;
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--gallery-bg);
+  padding: 3rem 1.5rem 4rem;
+  color: var(--gallery-text);
+  box-sizing: border-box;
 }
 
-.gallery__name {
-    color: rgb(0, 132, 214)
+.hero {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 0 1rem;
 }
 
-.gallery__description {
-    border: none;
-    background: rgb(255 255 255 / 20%);
-    box-shadow: inset -5px -5px 5px 0 rgb(160 160 160 / 50%), inset 5px 5px 5px 0 rgb(147 147 147 / 50%);
+.title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #fff 0%, var(--gallery-accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.gallery__image {
-    border-radius: 50%;
-    width: 250px;
-    height: 250px;
+.subtitle {
+  font-size: 1.1rem;
+  color: var(--gallery-text-muted);
+  font-weight: 400;
 }
 
-
-.gallery__card {
-    border: none;
-    display: flex;
-    align-items: center;
+/* Intro block */
+.intro {
+  width: 100%;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 3.5rem;
+  padding: 1.75rem 2rem;
+  background: var(--gallery-surface);
+  border: 1px solid var(--gallery-border);
+  border-radius: var(--gallery-radius);
+  box-shadow: var(--gallery-shadow);
+  backdrop-filter: blur(12px);
 }
 
-.gallery__text {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    row-gap: 10px
+.introTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  color: var(--gallery-accent);
 }
 
-@media screen and (max-width: 768px) {
-    .gallery__main {
-        grid-template-columns: repeat(1, 1fr);
-        overflow-y: auto;
-        gap: 10px;
-        margin: 10px 0px;
-    }
+.experienceList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.experienceItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.95rem;
+  color: var(--gallery-text-muted);
+  line-height: 1.4;
+}
+
+.experienceNumber {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gallery-accent-soft);
+  color: var(--gallery-accent);
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Cards grid */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  justify-items: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 320px;
+  background: var(--gallery-surface);
+  border: 1px solid var(--gallery-border);
+  border-radius: var(--gallery-radius);
+  overflow: hidden;
+  box-shadow: var(--gallery-shadow);
+  backdrop-filter: blur(12px);
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--gallery-accent-soft);
+  border-color: var(--gallery-accent-soft);
+  background: var(--gallery-surface-hover);
+}
+
+.cardImageWrap {
+  position: relative;
+  padding-top: 100%;
+  overflow: hidden;
+}
+
+.cardImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.card:hover .cardImage {
+  transform: scale(1.06);
+}
+
+.cardOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.cardBody {
+  padding: 1.5rem 1.25rem;
+}
+
+.cardName {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: #fff;
+}
+
+.cardRole {
+  display: inline-block;
+  font-size: 0.85rem;
+  color: var(--gallery-accent);
+  font-weight: 600;
+  margin-bottom: 1rem;
+  letter-spacing: 0.02em;
+}
+
+.cardStack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.stackPill {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.7rem;
+  background: var(--gallery-accent-soft);
+  color: var(--gallery-accent);
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .gallery {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .hero {
+    margin-bottom: 2rem;
+  }
+
+  .intro {
+    margin-bottom: 2.5rem;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .experienceItem {
+    font-size: 0.9rem;
+  }
+
+  .cards {
+    gap: 1.5rem;
+  }
+
+  .card {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .gallery {
+    --gallery-bg: linear-gradient(160deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%);
+    --gallery-surface: rgba(255, 255, 255, 0.85);
+    --gallery-surface-hover: rgba(255, 255, 255, 0.95);
+    --gallery-border: rgba(0, 0, 0, 0.06);
+    --gallery-accent: #0284c7;
+    --gallery-accent-soft: rgba(2, 132, 199, 0.2);
+    --gallery-text: #1e293b;
+    --gallery-text-muted: #64748b;
+    --gallery-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  }
+
+  .title {
+    background: linear-gradient(135deg, #0f172a 0%, var(--gallery-accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .cardName {
+    color: #0f172a;
+  }
+
+  .cardOverlay {
+    background: linear-gradient(to top, rgba(241, 245, 249, 0.9) 0%, transparent 50%);
+  }
 }

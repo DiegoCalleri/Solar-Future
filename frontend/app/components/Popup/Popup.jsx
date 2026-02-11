@@ -1,20 +1,50 @@
+'use client'
+
+import { useRef, useEffect } from "react";
+import { gsap } from "gsap";
 import Styles from "./Popup.module.css";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { closePopup } from "../../redux/features/counter/counterSlice";
 
 export const Popup = (props) => {
-  const isOpened = useSelector((state) => state.counter.popupIsOpened)
-  const id = useSelector((state) => state.counter.popupId)
+  const isOpened = useSelector((state) => state.counter.popupIsOpened);
+  const id = useSelector((state) => state.counter.popupId);
   const dispatch = useDispatch();
+  const boxRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpened && props.id === id && boxRef.current) {
+      gsap.set(boxRef.current, { scale: 1, opacity: 1, y: 0 });
+    }
+  }, [isOpened, id, props.id]);
+
+  const handleClose = () => {
+    if (!boxRef.current) {
+      dispatch(closePopup());
+      return;
+    }
+    gsap.to(boxRef.current, {
+      scale: 0.92,
+      opacity: 0,
+      y: -50,
+      duration: 0.3,
+      ease: "power2.in",
+      onComplete: () => dispatch(closePopup()),
+    });
+  };
+
+  const visible = isOpened && props.id == id;
 
   return (
     <div
-      className={`${Styles["popup"]} ${
-        isOpened && props.id == id && Styles["popup_is-opened"]
-      }`}
+      className={`${Styles["popup"]} ${visible ? Styles["popup_is-opened"] : ""}`}
     >
-      <button className={Styles["close"]} onClick={() => dispatch(closePopup())}>
+      <button
+        type="button"
+        className={Styles["close"]}
+        onClick={handleClose}
+        aria-label="Закрыть"
+      >
         <svg
           className={Styles["close-icon"]}
           xmlns="http://www.w3.org/2000/svg"
@@ -27,7 +57,9 @@ export const Popup = (props) => {
           />
         </svg>
       </button>
-      <div className={Styles.content}>{props.children}</div>
+      <div ref={boxRef} className={Styles["popup__box"]}>
+        <div className={Styles.content}>{props.children}</div>
+      </div>
     </div>
   );
 };

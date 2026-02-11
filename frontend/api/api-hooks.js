@@ -48,7 +48,6 @@ const checkTokenIsCorrect = async (jwt, dispatch) => {
 
 
 const checkAccessIsGaranteed = async (jwt, dispatch, pathname, router) => {
-  console.log(typeof jwt)
   if ((!jwt || jwt=='null') && pathname != '/') {
     !allowedResorses.includes(pathname) ? ifUserNoAuth(router, dispatch) : null
     return
