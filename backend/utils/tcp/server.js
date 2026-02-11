@@ -1,5 +1,9 @@
 const net = require('net');
 
+// Хранилище активных соединений от модемов
+// Ключ: host:port (из БД устройств), Значение: массив активных сокетов
+const activeConnections = new Map();
+
 const getTimestamp = () => {
     return new Date().toISOString().replace('T', ' ').substring(0, 19);
 };
@@ -10,10 +14,74 @@ const bufferToHex = (buffer) => {
         .join(' ');
 };
 
+// Функция для отправки команды на модем через активное соединение
+const sendCommandToModem = (host, port, command) => {
+    // Ищем соединение по IP адресу модема (host) или используем первое доступное
+    let targetSocket = null;
+    
+    // Сначала пытаемся найти по host (IP адресу)
+    if (activeConnections.has(host)) {
+        const connections = activeConnections.get(host);
+        for (const socket of connections) {
+            if (!socket.destroyed && socket.writable) {
+                targetSocket = socket;
+                break;
+            }
+        }
+    }
+    
+    // Если не нашли по host, используем первое доступное соединение
+    if (!targetSocket) {
+        for (const [key, connections] of activeConnections.entries()) {
+            for (const socket of connections) {
+                if (!socket.destroyed && socket.writable) {
+                    targetSocket = socket;
+                    console.log(`[${getTimestamp()}] 💡 Используется соединение от ${key} (запрошено ${host}:${port})`);
+                    break;
+                }
+            }
+            if (targetSocket) break;
+        }
+    }
+    
+    if (!targetSocket) {
+        console.log(`[${getTimestamp()}] ⚠️  Нет активных соединений от модемов`);
+        console.log(`[${getTimestamp()}] 💡 Доступные соединения:`, Array.from(activeConnections.keys()));
+        return false;
+    }
+    
+    // Отправляем команду
+    try {
+        const commandWithNewline = command + '\r\n';
+        console.log(`[${getTimestamp()}] 📤 Отправка команды на модем: "${command.trim()}"`);
+        targetSocket.write(commandWithNewline, 'utf8', (err) => {
+            if (err) {
+                console.error(`[${getTimestamp()}] ❌ Ошибка отправки команды:`, err.message);
+            } else {
+                console.log(`[${getTimestamp()}] ✅ Команда отправлена успешно на модем`);
+                targetSocket.setNoDelay(true);
+            }
+        });
+        return true;
+    } catch (err) {
+        console.error(`[${getTimestamp()}] ❌ Ошибка при записи:`, err.message);
+        return false;
+    }
+};
+
 const server = net.createServer((socket) => {
     const clientAddress = `${socket.remoteAddress || 'unknown'}:${socket.remotePort || 'unknown'}`;
     
     console.log(`\n[${getTimestamp()}] 📡 Новое подключение от модема: ${clientAddress}`);
+    
+    // Сохраняем соединение для возможной отправки команд
+    // Используем IP адрес модема как ключ (можно расширить для идентификации по host:port из БД)
+    const modemKey = socket.remoteAddress || 'unknown';
+    if (!activeConnections.has(modemKey)) {
+        activeConnections.set(modemKey, []);
+    }
+    activeConnections.get(modemKey).push(socket);
+    console.log(`[${getTimestamp()}] 💾 Сохранено активное соединение для ${modemKey} (всего: ${activeConnections.get(modemKey).length})`);
 
     // Обработка ошибок должна быть установлена ДО других обработчиков
     socket.on("error", (err) => {
@@ -141,6 +209,20 @@ const server = net.createServer((socket) => {
         } else {
             console.log(`[${getTimestamp()}] 🔌 Соединение закрыто клиентом: ${clientAddress}`);
         }
+        
+        // Удаляем соединение из активных
+        const modemKey = socket.remoteAddress || 'unknown';
+        if (activeConnections.has(modemKey)) {
+            const connections = activeConnections.get(modemKey);
+            const index = connections.indexOf(socket);
+            if (index > -1) {
+                connections.splice(index, 1);
+                console.log(`[${getTimestamp()}] 🗑️  Удалено соединение для ${modemKey} (осталось: ${connections.length})`);
+                if (connections.length === 0) {
+                    activeConnections.delete(modemKey);
+                }
+            }
+        }
     });
     
     // Обработка события 'drain' - буфер отправки освободился
@@ -160,4 +242,4 @@ server.on('error', (err) => {
     // Не завершаем процесс, сервер продолжит работу
 });
 
-module.exports = server;
+module.exports = { server, sendCommandToModem, activeConnections };

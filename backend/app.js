@@ -7,7 +7,7 @@ const apiRouter = require('./routes/api');
 
 
 const connectToDatabase = require('./database/connect');
-const tcpServer = require('./utils/tcp/server');
+const { server: tcpServer } = require('./utils/tcp/server');
 
 const app = express();
 const port = process.env.PORT || 4000;

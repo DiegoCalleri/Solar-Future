@@ -1,54 +1,42 @@
 const net = require('net')
+const { sendCommandToModem, activeConnections } = require('../utils/tcp/server');
+
+const getTimestamp = () => {
+    return new Date().toISOString().replace('T', ' ').substring(0, 19);
+};
 
 const digitalWrite = (req, res, next) => {
     const { number, switchOn, host, port } = req.body
     
-    console.log(`\n[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] 🔌 digitalWrite запрос:`);
+    console.log(`\n[${getTimestamp()}] 🔌 digitalWrite запрос:`);
     console.log(`   Параметры: pin=${number}, state=${switchOn}`);
-    console.log(`   Подключение к модему: ${host}:${port}`);
+    console.log(`   Модем: ${host}:${port}`);
     
-    try {
-        const client = new net.Socket();
-        
-        client.on('connect', function () {
-            const command = 'D0' + number + '0' + Number(switchOn);
-            console.log(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] ✅ Подключено к модему ${host}:${port}`);
-            console.log(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] 📤 Отправка команды на модем: "${command}"`);
-            client.write(command);
-        });
-        
-        client.on('error', function (err) {
-            console.error(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] ❌ Ошибка подключения к модему ${host}:${port}:`, err.message);
-            req.data = { "data": "null" };
+    const command = 'D0' + number + '0' + Number(switchOn);
+    
+    // Пытаемся отправить команду через активное соединение от модема
+    // Модем подключается к серверу на порту 7070, поэтому используем его IP
+    const success = sendCommandToModem(host, port, command);
+    
+    if (success) {
+        // Команда отправлена, ждем ответ через TCP сервер
+        // Ответ придет через событие 'data' в TCP сервере
+        // Устанавливаем таймаут для ожидания ответа
+        const timeout = setTimeout(() => {
+            console.log(`[${getTimestamp()}] ⏱️  Таймаут ожидания ответа от модема`);
+            req.data = { "data": "timeout" };
             next();
-        });
-
-        client.on('data', function (data) {
-            console.log(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] 📥 Получен ответ от модема: "${data.toString()}"`);
-            if (data) {
-                try {
-                    req.data = { "data": data.subarray(0, 5).toString() };
-                    next();
-                    client.end()
-                }
-                catch (err) {
-                    console.error(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] ❌ Ошибка обработки ответа:`, err.message);
-                    req.data = { "data": "null" };
-                    next();
-                    client.end()
-                }
-            }
-        });
+        }, 5000);
         
-        client.on('close', function () {
-            console.log(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] 🔌 Соединение с модемом закрыто`);
-        });
-        
-        console.log(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] 🔄 Попытка подключения к модему ${host}:${port}...`);
-        client.connect(port, host);
-    }
-    catch (err) {
-        console.error(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] ❌ Ошибка создания TCP клиента:`, err.message);
+        // Сохраняем callback для обработки ответа
+        // Ответ будет обработан в TCP сервере и сохранен в req
+        req._commandTimeout = timeout;
+        req._command = command;
+    } else {
+        console.error(`[${getTimestamp()}] ❌ Не удалось отправить команду - нет активного соединения с модемом ${host}:${port}`);
+        console.log(`[${getTimestamp()}] 💡 Доступные соединения:`, Array.from(activeConnections.keys()));
+        req.data = { "data": "no_connection" };
+        next();
     }
 }
 
@@ -56,52 +44,30 @@ const digitalWrite = (req, res, next) => {
 const analogRead = (req, res, next) => {
     const { number, host, port } = req.body
     
-    console.log(`\n[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] 🔌 analogRead запрос:`);
+    console.log(`\n[${getTimestamp()}] 🔌 analogRead запрос:`);
     console.log(`   Параметры: sensor=${number}`);
-    console.log(`   Подключение к модему: ${host}:${port}`);
+    console.log(`   Модем: ${host}:${port}`);
     
-    try {
-        const client = new net.Socket();
-        
-        client.on('connect', function () {
-            const command = 'A' + number;
-            console.log(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] ✅ Подключено к модему ${host}:${port}`);
-            console.log(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] 📤 Отправка команды на модем: "${command}"`);
-            client.write(command);
-        });
-        
-        client.on('error', function (err) {
-            console.error(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] ❌ Ошибка подключения к модему ${host}:${port}:`, err.message);
-            req.data = { "data": "null" };
+    const command = 'A' + number;
+    
+    // Пытаемся отправить команду через активное соединение от модема
+    const success = sendCommandToModem(host, port, command);
+    
+    if (success) {
+        // Команда отправлена, ждем ответ через TCP сервер
+        const timeout = setTimeout(() => {
+            console.log(`[${getTimestamp()}] ⏱️  Таймаут ожидания ответа от модема`);
+            req.data = { "data": "timeout" };
             next();
-        });
-
-        client.on('data', function (data) {
-            console.log(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] 📥 Получен ответ от модема: "${data.toString()}"`);
-            if (data) {
-                try {
-                    req.data = { "data": data.subarray(0, 5).toString() };
-                    next();
-                    client.end()
-                }
-                catch (err) {
-                    console.error(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] ❌ Ошибка обработки ответа:`, err.message);
-                    req.data = { "data": "null" };
-                    next();
-                    client.end()
-                }
-            }
-        });
+        }, 5000);
         
-        client.on('close', function () {
-            console.log(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] 🔌 Соединение с модемом закрыто`);
-        });
-        
-        console.log(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] 🔄 Попытка подключения к модему ${host}:${port}...`);
-        client.connect(port, host);
-    }
-    catch (err) {
-        console.error(`[${new Date().toISOString().replace('T', ' ').substring(0, 19)}] ❌ Ошибка создания TCP клиента:`, err.message);
+        req._commandTimeout = timeout;
+        req._command = command;
+    } else {
+        console.error(`[${getTimestamp()}] ❌ Не удалось отправить команду - нет активного соединения с модемом ${host}:${port}`);
+        console.log(`[${getTimestamp()}] 💡 Доступные соединения:`, Array.from(activeConnections.keys()));
+        req.data = { "data": "no_connection" };
+        next();
     }
 
 }
