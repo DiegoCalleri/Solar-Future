@@ -22,6 +22,8 @@
     background-color: rgb(247 228 87 / 97%);
     display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 8px;
 }
 
 
@@ -35,4 +37,12 @@
     background-color: rgb(25 63 142);
     display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.card__invert {
+    min-width: 32px;
+    padding: 4px 8px;
+    font-size: 1rem;
 }

@@ -22,7 +22,7 @@ export const MyCard = (props) => {
     const payload = { number: props.data.number, host: props.data.host, port: props.data.port }
     const poll = async () => {
       const start = Date.now()
-      const res = await POST(endpoints.sensorData, payload, { timeoutMs: 25000 })
+      const res = await POST(endpoints.sensorData, payload, { timeoutMs: 45000 })
       const duration = Date.now() - start
       const entry = {
         time: new Date().toLocaleTimeString('ru-RU'),
@@ -70,11 +70,17 @@ export const MyCard = (props) => {
               <Button variant="light">
                 <img className={Styles['card__on']} src='./images/light__off.svg' onClick={() => handleClick(false)} />
               </Button>
+              <Button variant="outline-dark" size="sm" className={Styles['card__invert']} onClick={() => handleClick(false)} title="Инверсия (выкл)">
+                ↻
+              </Button>
             </Card.Body> :
 
             <Card.Body className={Styles['card__off_body']}>
               <Button variant="light">
                 <img className={Styles['card__off']} src='./images/light__off.svg' onClick={() => handleClick(true)} />
+              </Button>
+              <Button variant="outline-light" size="sm" className={Styles['card__invert']} onClick={() => handleClick(true)} title="Инверсия (вкл)">
+                ↻
               </Button>
             </Card.Body>
 
