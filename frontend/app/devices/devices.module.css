@@ -1,16 +1,20 @@
 /* Неоморфизм в общем стиле сайта (тени как в main__form-container, MyCard) */
 .devices__wrap {
+    width: 100%;
     min-height: 60vh;
     padding: 2rem 1.5rem;
     background: linear-gradient(160deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%);
+    box-sizing: border-box;
 }
 
 .devices__container {
     display: flex;
     flex-wrap: wrap;
     gap: 1.25rem;
-    max-width: 1200px;
+    width: 100%;
+    max-width: 1400px;
     margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .devices__header {

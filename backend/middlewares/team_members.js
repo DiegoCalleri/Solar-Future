@@ -1,7 +1,11 @@
 const team_members = require('../models/team_members');
 
 const findAllTeamMembers = async (req, res, next) => {
-    req.teamMembersArray = await team_members.find({}).sort({ createdAt: 1 });
+    const all = await team_members.find({}).sort({ createdAt: 1 });
+    req.teamMembersArray = all.sort((a, b) => {
+        const order = { руководитель: 0, участник: 1 };
+        return (order[a.group] ?? 1) - (order[b.group] ?? 1);
+    });
     next();
 };
 
@@ -18,6 +22,9 @@ const updateTeamMember = async (req, res, next) => {
     try {
         if (req.body.skills && typeof req.body.skills === 'string') {
             req.body.skills = req.body.skills.split(',').map(s => s.trim()).filter(Boolean);
+        }
+        if (req.body.group && !['руководитель', 'участник'].includes(req.body.group)) {
+            delete req.body.group;
         }
         req.teamMember = await team_members.findByIdAndUpdate(req.params.id, req.body, { new: true });
         next();
@@ -39,6 +46,9 @@ const createTeamMember = async (req, res, next) => {
     try {
         if (req.body.skills && typeof req.body.skills === 'string') {
             req.body.skills = req.body.skills.split(',').map(s => s.trim()).filter(Boolean);
+        }
+        if (req.body.group && !['руководитель', 'участник'].includes(req.body.group)) {
+            delete req.body.group;
         }
         req.teamMember = await team_members.create(req.body);
         next();
