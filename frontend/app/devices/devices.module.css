@@ -1,16 +1,37 @@
+/* Неоморфизм в общем стиле сайта (тени как в main__form-container, MyCard) */
+.devices__wrap {
+    min-height: 60vh;
+    padding: 2rem 1.5rem;
+    background: linear-gradient(160deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%);
+}
+
 .devices__container {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 1.25rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .devices__header {
     width: 100%;
-    margin-bottom: 8px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.devices__header .btn {
+    border-radius: 12px;
+    box-shadow: 8px 8px 16px 0 rgba(0, 0, 0, 0.15),
+        -8px -8px 16px 0 rgba(255, 255, 255, 0.8);
+    border: none;
 }
 
 .log__body {
     font-size: 0.9rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.06);
 }
 
 .log__table {
@@ -20,20 +41,38 @@
 
 .log__table th,
 .log__table td {
-    padding: 6px 8px;
+    padding: 8px 12px;
     text-align: left;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid #e9ecef;
 }
 
 .log__table th {
     font-weight: 600;
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 .log__row_ok {
-    background: #f0f9f0;
+    background: rgba(40, 167, 69, 0.08);
 }
 
 .log__row_err {
-    background: #fff5f5;
+    background: rgba(220, 53, 69, 0.08);
+}
+
+/* Модалка в неоморфизме */
+.devices__modal .modal-content {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 12px 12px 24px 0 rgba(0, 0, 0, 0.2),
+        -12px -12px 24px 0 rgba(255, 255, 255, 0.5);
+    background: linear-gradient(160deg, #fff 0%, #f8f9fa 100%);
+}
+
+.devices__modal .modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.devices__modal .modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
 }

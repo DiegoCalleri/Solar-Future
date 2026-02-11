@@ -7,7 +7,8 @@ export const endpoints = {
   auth: `${BASE_URL}/auth/login`,
   me: `${BASE_URL}/me`,
   user: `${BASE_URL}/users/`,
-  order: `${BASE_URL}/orders/`
+  order: `${BASE_URL}/orders/`,
+  teamMembers: `${BASE_URL}/team_members`,
 };
 
 export const allowedResorses = ['/team', '/order']

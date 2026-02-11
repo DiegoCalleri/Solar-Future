@@ -32,20 +32,22 @@ export default function page() {
     return (
         <>
             {data ? (
-                <div className={Styles["devices__container"]}>
-                    <div className={Styles["devices__header"]}>
-                        <Button variant="outline-secondary" size="sm" onClick={() => setShowLogModal(true)}>
-                            Лог опроса
-                        </Button>
+                <div className={Styles["devices__wrap"]}>
+                    <div className={Styles["devices__container"]}>
+                        <div className={Styles["devices__header"]}>
+                            <Button variant="outline-secondary" size="sm" onClick={() => setShowLogModal(true)}>
+                                Лог опроса
+                            </Button>
+                        </div>
+                        <CardsList data={data.digital_pins} params={"digital_pins"} key={"digital_pins"} />
+                        <CardsList data={data.analog_sensors} params={"analog_sensors"} key={"analog_sensors"} onPollLog={addPollLog} />
                     </div>
-                    <CardsList data={data.digital_pins} params={"digital_pins"} key={"digital_pins"} />
-                    <CardsList data={data.analog_sensors} params={"analog_sensors"} key={"analog_sensors"} onPollLog={addPollLog} />
                 </div>
             ) : (
-                <h1>Loading...</h1>
+                <div className={Styles["devices__wrap"]}><h1>Loading...</h1></div>
             )}
 
-            <Modal show={showLogModal} onHide={() => setShowLogModal(false)} size="lg" scrollable>
+            <Modal show={showLogModal} onHide={() => setShowLogModal(false)} size="lg" scrollable className={Styles["devices__modal"]}>
                 <Modal.Header closeButton>
                     <Modal.Title>Лог опроса датчиков</Modal.Title>
                 </Modal.Header>
