@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useSelector, useDispatch } from 'react-redux'
-import { openPopup, pushOpen, closePopup } from '../../redux/features/counter/counterSlice'
+import { openPopup, pushOpen, closePopup } from '../redux/features/counter/counterSlice'
 
 export function ManagmentGuard({ children }) {
   const router = useRouter()
