@@ -53,13 +53,31 @@ const server = net.createServer((socket) => {
             
             // Безопасная отправка ответа с обработкой ошибок
             try {
-                socket.write('Понг!!!', (err) => {
+                // Проверяем, что сокет еще открыт и готов к записи
+                if (socket.destroyed || !socket.writable) {
+                    console.error(`[${timestamp}] ❌ Сокет закрыт или не готов к записи`);
+                    return;
+                }
+                
+                // Отправляем ответ с переносом строки для Arduino Serial
+                const response = 'Понг!!!\r\n';
+                console.log(`[${timestamp}] 📤 Отправка ответа: "${response.trim()}"`);
+                
+                socket.write(response, 'utf8', (err) => {
                     if (err) {
                         console.error(`[${timestamp}] ❌ Ошибка отправки ответа:`, err.message);
                     } else {
-                        console.log(`[${timestamp}] 📤 Отправлен ответ: Понг!!!`);
+                        console.log(`[${timestamp}] ✅ Ответ успешно отправлен: "${response.trim()}"`);
+                        // Принудительно сбрасываем буфер отправки
+                        if (socket.writable) {
+                            socket.setNoDelay(true); // Отключаем алгоритм Nagle для немедленной отправки
+                        }
                     }
                 });
+                
+                // Дополнительная задержка для гарантии отправки данных
+                // НЕ закрываем соединение - пусть модем сам решает когда закрывать
+                
             } catch (writeErr) {
                 console.error(`[${timestamp}] ❌ Ошибка при записи:`, writeErr.message);
             }
@@ -72,8 +90,18 @@ const server = net.createServer((socket) => {
         if (hadError) {
             console.log(`[${getTimestamp()}] 🔌 Соединение закрыто с ошибкой: ${clientAddress}`);
         } else {
-            console.log(`[${getTimestamp()}] 🔌 Соединение закрыто: ${clientAddress}`);
+            console.log(`[${getTimestamp()}] 🔌 Соединение закрыто клиентом: ${clientAddress}`);
         }
+    });
+    
+    // Обработка события 'drain' - буфер отправки освободился
+    socket.on('drain', () => {
+        console.log(`[${getTimestamp()}] 💧 Буфер отправки освобожден: ${clientAddress}`);
+    });
+    
+    // Обработка события 'end' - клиент закрыл соединение для записи
+    socket.on('end', () => {
+        console.log(`[${getTimestamp()}] 🔚 Клиент закрыл соединение для записи: ${clientAddress}`);
     });
 });
 
