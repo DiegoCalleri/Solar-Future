@@ -2,10 +2,9 @@ services:
   api:    
     build: ./backend    
     container_name: backend    
-    ports:      
+    ports:
       - '4000:4000'
-    expose:
-    - '7070'
+      - '7070:7070'
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/solar
       - CORS_ORIGINS=${CORS_ORIGINS}
