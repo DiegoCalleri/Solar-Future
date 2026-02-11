@@ -6,6 +6,16 @@ const activeConnections = new Map();
 // Все сокеты в порядке подключения (новый в конце) — для приоритета нового при опросе
 const connectionOrder = [];
 
+// Ожидающий ответ аналогового датчика: resolve(voltage) вызовет middleware и отдаст значение на фронт
+let _pendingAnalogResolve = null;
+const registerPendingAnalogResolve = (resolve) => { _pendingAnalogResolve = resolve; };
+const resolvePendingAnalog = (voltage) => {
+    if (typeof _pendingAnalogResolve === 'function') {
+        _pendingAnalogResolve(voltage);
+        _pendingAnalogResolve = null;
+    }
+};
+
 const getTimestamp = () => {
     return new Date().toISOString().replace('T', ' ').substring(0, 19);
 };
@@ -187,7 +197,7 @@ const server = net.createServer((socket) => {
                 const voltage = parseFloat(command);
                 console.log(`[${timestamp}] ✅ Получены данные от аналогового датчика: ${command}`);
                 console.log(`[${timestamp}]    Напряжение: ${voltage} В`);
-                // Не отправляем ответ - это данные от Arduino
+                resolvePendingAnalog(voltage);
                 response = null;
                 
             } else if (/ult:\s*"[\d.]+"/.test(command)) {
@@ -197,6 +207,7 @@ const server = net.createServer((socket) => {
                 if (!isNaN(voltage)) {
                     console.log(`[${timestamp}] ✅ Получены данные от аналогового датчика: ult: "${voltage}"`);
                     console.log(`[${timestamp}]    Напряжение: ${voltage} В`);
+                    resolvePendingAnalog(voltage);
                 }
                 response = null;
                 
@@ -284,4 +295,4 @@ setInterval(() => {
     }
 }, DEAD_SOCKET_CLEANUP_INTERVAL_MS);
 
-module.exports = { server, sendCommandToModem, activeConnections };
+module.exports = { server, sendCommandToModem, activeConnections, registerPendingAnalogResolve };

@@ -1,5 +1,5 @@
 const net = require('net')
-const { sendCommandToModem, activeConnections } = require('../utils/tcp/server');
+const { sendCommandToModem, activeConnections, registerPendingAnalogResolve } = require('../utils/tcp/server');
 
 const getTimestamp = () => {
     return new Date().toISOString().replace('T', ' ').substring(0, 19);
@@ -49,27 +49,29 @@ const analogRead = (req, res, next) => {
     console.log(`   Модем: ${host}:${port}`);
     
     const command = 'A' + number;
-    
-    // Пытаемся отправить команду через активное соединение от модема
     const success = sendCommandToModem(host, port, command);
     
     if (success) {
-        // Команда отправлена, ждем ответ через TCP сервер (40 сек — модем может отвечать медленно)
-        const timeout = setTimeout(() => {
-            console.log(`[${getTimestamp()}] ⏱️  Таймаут ожидания ответа от модема`);
-            req.data = { "data": "timeout" };
+        let done = false;
+        const finish = (data) => {
+            if (done) return;
+            done = true;
+            if (req._commandTimeout) clearTimeout(req._commandTimeout);
+            req._commandTimeout = null;
+            req.data = data;
             next();
+        };
+        registerPendingAnalogResolve((voltage) => finish({ data: voltage }));
+        req._commandTimeout = setTimeout(() => {
+            console.log(`[${getTimestamp()}] ⏱️  Таймаут ожидания ответа от модема`);
+            finish({ data: "timeout" });
         }, 40000);
-        
-        req._commandTimeout = timeout;
-        req._command = command;
     } else {
         console.error(`[${getTimestamp()}] ❌ Не удалось отправить команду - нет активного соединения с модемом ${host}:${port}`);
         console.log(`[${getTimestamp()}] 💡 Доступные соединения:`, Array.from(activeConnections.keys()));
         req.data = { "data": "no_connection" };
         next();
     }
-
 }
 
 
