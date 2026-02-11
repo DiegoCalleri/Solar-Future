@@ -16,10 +16,13 @@ export const POST = async (url, data, options = {}) => {
     const { timeoutMs } = options
     const controller = timeoutMs ? new AbortController() : null
     const timeoutId = controller && timeoutMs ? setTimeout(() => controller.abort(), timeoutMs) : null
+    const jwt = getJWT()
+    const headers = { 'Content-Type': 'application/json' }
+    if (jwt) headers['Authorization'] = `Bearer ${jwt}`
     try {
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify(data),
             signal: controller?.signal,
         })
@@ -34,10 +37,13 @@ export const POST = async (url, data, options = {}) => {
 }
 
 export const PUT = async (url, data) => {
+    const jwt = getJWT()
+    const headers = { 'Content-Type': 'application/json' }
+    if (jwt) headers['Authorization'] = `Bearer ${jwt}`
     try {
         const response = await fetch(url, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify(data),
         })
         if (response.status !== 200) {
@@ -53,10 +59,13 @@ export const PUT = async (url, data) => {
 
 
 export const DELETE = async (url) => {
+    const jwt = getJWT()
+    const headers = { 'Content-Type': 'application/json' }
+    if (jwt) headers['Authorization'] = `Bearer ${jwt}`
     try {
         const response = await fetch(url, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
+            headers,
         })
         if (response.status !== 200) {
             throw new Error('Ошибка DELETE-запроса')
