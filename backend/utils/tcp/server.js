@@ -187,6 +187,16 @@ const server = net.createServer((socket) => {
                 // Не отправляем ответ - это данные от Arduino
                 response = null;
                 
+            } else if (/ult:\s*"[\d.]+"/.test(command)) {
+                // Формат ult: "3.34" — напряжение от датчика (нормальный ответ, не ошибка)
+                const match = command.match(/ult:\s*"([\d.]+)"/);
+                const voltage = match ? parseFloat(match[1]) : NaN;
+                if (!isNaN(voltage)) {
+                    console.log(`[${timestamp}] ✅ Получены данные от аналогового датчика: ult: "${voltage}"`);
+                    console.log(`[${timestamp}]    Напряжение: ${voltage} В`);
+                }
+                response = null;
+                
             } else {
                 // Неизвестная команда или формат
                 console.log(`[${timestamp}] ⚠️  Неизвестный формат данных: ${command}`);

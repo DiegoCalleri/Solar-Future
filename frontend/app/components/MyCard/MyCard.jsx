@@ -70,7 +70,7 @@ export const MyCard = (props) => {
               <Button variant="light">
                 <img className={Styles['card__on']} src='./images/light__off.svg' onClick={() => handleClick(false)} />
               </Button>
-              <Button variant="outline-dark" size="sm" className={Styles['card__invert']} onClick={() => handleClick(false)} title="Инверсия (выкл)">
+              <Button type="button" variant="outline-dark" size="sm" className={Styles['card__invert']} onClick={() => handleClick(!state)} title="Инверсия (отправить выкл)">
                 ↻
               </Button>
             </Card.Body> :
@@ -79,7 +79,7 @@ export const MyCard = (props) => {
               <Button variant="light">
                 <img className={Styles['card__off']} src='./images/light__off.svg' onClick={() => handleClick(true)} />
               </Button>
-              <Button variant="outline-light" size="sm" className={Styles['card__invert']} onClick={() => handleClick(true)} title="Инверсия (вкл)">
+              <Button type="button" variant="outline-light" size="sm" className={Styles['card__invert']} onClick={() => handleClick(!state)} title="Инверсия (отправить вкл)">
                 ↻
               </Button>
             </Card.Body>
