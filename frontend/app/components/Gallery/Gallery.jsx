@@ -9,16 +9,9 @@ import Styles from './Gallery.module.css'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const experience = [
-  'Дешифратор посылок от устройств LoRaWAN',
-  'Веб-приложение для управления платами Arduino',
-  'Система мониторинга за солнечными панелями',
-]
-
 export const Gallery = () => {
   const sectionRef = useRef(null)
   const titleRef = useRef(null)
-  const introRef = useRef(null)
   const cardsRef = useRef([])
   const [team, setTeam] = useState([])
   const [loading, setLoading] = useState(true)
@@ -38,13 +31,6 @@ export const Gallery = () => {
         y: 0,
         opacity: 1,
         duration: 0.7,
-        ease: 'power3.out',
-      })
-      gsap.fromTo(introRef.current, { y: 40, opacity: 0 }, {
-        y: 0,
-        opacity: 1,
-        duration: 0.6,
-        delay: 0.2,
         ease: 'power3.out',
       })
       cardsRef.current.forEach((el, i) => {
@@ -72,18 +58,6 @@ export const Gallery = () => {
         <h1 ref={titleRef} className={Styles.title}>Команда</h1>
         <p className={Styles.subtitle}>Люди и технологии за проектом Solar Future</p>
       </header>
-
-      <section ref={introRef} className={Styles.intro}>
-        <h2 className={Styles.introTitle}>Опыт команды</h2>
-        <ul className={Styles.experienceList}>
-          {experience.map((item, i) => (
-            <li key={i} className={Styles.experienceItem}>
-              <span className={Styles.experienceNumber}>{i + 1}</span>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
 
       <section className={Styles.cards}>
         {loading ? (
