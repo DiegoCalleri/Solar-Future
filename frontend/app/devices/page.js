@@ -25,7 +25,9 @@ export default function page() {
     useEffect(() => {
         if (user) {
             GET(BASE_URL + '/users/devices/' + user._id)
-                .then((res) => setData(res))
+                .then((res) => {
+                    if (res && !(res instanceof Error) && res.digital_pins) setData(res)
+                })
         }
     }, [user])
 
