@@ -8,6 +8,21 @@ const getTimestamp = () => {
     return new Date().toISOString().replace('T', ' ').substring(0, 19);
 };
 
+// Удалить сокет из activeConnections (при закрытии, ошибке или ошибке записи)
+const removeSocketFromMap = (socket) => {
+    if (!socket || !socket.remoteAddress) return;
+    const modemKey = socket.remoteAddress;
+    if (!activeConnections.has(modemKey)) return;
+    const connections = activeConnections.get(modemKey);
+    const index = connections.indexOf(socket);
+    if (index === -1) return;
+    connections.splice(index, 1);
+    console.log(`[${getTimestamp()}] 🗑️  Удалено соединение для ${modemKey} (осталось: ${connections.length})`);
+    if (connections.length === 0) {
+        activeConnections.delete(modemKey);
+    }
+};
+
 const bufferToHex = (buffer) => {
     return Array.from(buffer)
         .map(b => b.toString(16).padStart(2, '0').toUpperCase())
@@ -57,6 +72,8 @@ const sendCommandToModem = (host, port, command) => {
         targetSocket.write(commandWithNewline, 'utf8', (err) => {
             if (err) {
                 console.error(`[${getTimestamp()}] ❌ Ошибка отправки команды:`, err.message);
+                removeSocketFromMap(targetSocket);
+                if (!targetSocket.destroyed) targetSocket.destroy();
             } else {
                 console.log(`[${getTimestamp()}] ✅ Команда отправлена успешно на модем`);
                 targetSocket.setNoDelay(true);
@@ -65,6 +82,7 @@ const sendCommandToModem = (host, port, command) => {
         return true;
     } catch (err) {
         console.error(`[${getTimestamp()}] ❌ Ошибка при записи:`, err.message);
+        removeSocketFromMap(targetSocket);
         return false;
     }
 };
@@ -83,14 +101,17 @@ const server = net.createServer((socket) => {
     activeConnections.get(modemKey).push(socket);
     console.log(`[${getTimestamp()}] 💾 Сохранено активное соединение для ${modemKey} (всего: ${activeConnections.get(modemKey).length})`);
 
+    // TCP keepalive — ОС периодически проверяет соединение; после перезагрузки модема соединение будет закрыто
+    socket.setKeepAlive(true, 30 * 1000);
+
     // Обработка ошибок должна быть установлена ДО других обработчиков
     socket.on("error", (err) => {
-        // ECONNRESET - это нормальная ситуация, когда клиент закрывает соединение
         if (err.code === 'ECONNRESET') {
             console.log(`[${getTimestamp()}] ⚠️  Модем закрыл соединение: ${clientAddress}`);
         } else {
             console.error(`[${getTimestamp()}] ❌ Ошибка соединения [${clientAddress}]:`, err.code, err.message);
         }
+        removeSocketFromMap(socket);
     });
 
     socket.on("data", (data) => {
@@ -209,20 +230,7 @@ const server = net.createServer((socket) => {
         } else {
             console.log(`[${getTimestamp()}] 🔌 Соединение закрыто клиентом: ${clientAddress}`);
         }
-        
-        // Удаляем соединение из активных
-        const modemKey = socket.remoteAddress || 'unknown';
-        if (activeConnections.has(modemKey)) {
-            const connections = activeConnections.get(modemKey);
-            const index = connections.indexOf(socket);
-            if (index > -1) {
-                connections.splice(index, 1);
-                console.log(`[${getTimestamp()}] 🗑️  Удалено соединение для ${modemKey} (осталось: ${connections.length})`);
-                if (connections.length === 0) {
-                    activeConnections.delete(modemKey);
-                }
-            }
-        }
+        removeSocketFromMap(socket);
     });
     
     // Обработка события 'drain' - буфер отправки освободился
@@ -241,5 +249,19 @@ server.on('error', (err) => {
     console.error(`[${getTimestamp()}] ❌ Ошибка TCP сервера:`, err.code, err.message);
     // Не завершаем процесс, сервер продолжит работу
 });
+
+// Периодически удаляем из карты сокеты, уже уничтоженные (если событие close не сработало)
+const DEAD_SOCKET_CLEANUP_INTERVAL_MS = 60 * 1000;
+setInterval(() => {
+    for (const [modemKey, connections] of activeConnections.entries()) {
+        const alive = connections.filter((s) => !s.destroyed);
+        const removed = connections.length - alive.length;
+        if (removed > 0) {
+            activeConnections.set(modemKey, alive);
+            console.log(`[${getTimestamp()}] 🧹 Очистка: удалено ${removed} мёртвых соединений для ${modemKey}`);
+            if (alive.length === 0) activeConnections.delete(modemKey);
+        }
+    }
+}, DEAD_SOCKET_CLEANUP_INTERVAL_MS);
 
 module.exports = { server, sendCommandToModem, activeConnections };
