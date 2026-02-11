@@ -139,6 +139,38 @@ export const EditorPanel = ({ data, name }) => {
                     </>
                 }
 
+                {name === 'team_members' &&
+                    <>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Имя и фамилия</Form.Label>
+                            <Form.Control name="name" onInput={handleInput} defaultValue={isEditing ? data.name : ''} required key={isEditing} />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Группа</Form.Label>
+                            <Form.Select name="group" onChange={handleInput} value={newData.group ?? (isEditing ? data.group : null) ?? 'участник'} key={isEditing}>
+                                <option value="участник">Участник</option>
+                                <option value="руководитель">Руководитель</option>
+                            </Form.Select>
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Описание / роль</Form.Label>
+                            <Form.Control name="description" onInput={handleInput} defaultValue={isEditing ? data.description : ''} key={isEditing} />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Организация</Form.Label>
+                            <Form.Control name="organization" onInput={handleInput} defaultValue={isEditing ? data.organization : ''} key={isEditing} />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Навыки (через запятую)</Form.Label>
+                            <Form.Control name="skills" onInput={handleInput} defaultValue={isEditing ? (Array.isArray(data.skills) ? data.skills.join(', ') : data.skills) : ''} placeholder="React, Node.js, Arduino" key={isEditing} />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Ссылка на фото</Form.Label>
+                            <Form.Control name="image" onInput={handleInput} defaultValue={isEditing ? data.image : ''} key={isEditing} placeholder="https://..." />
+                        </Form.Group>
+                    </>
+                }
+
                 {
                     isEditing ?
                         <div className={Styles["editor-panel__buttons"]}>

@@ -1,8 +1,10 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { GET } from '../../../api/api-utils'
+import { endpoints } from '../../../api/config'
 import Styles from './Gallery.module.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -13,26 +15,21 @@ const experience = [
   'Система мониторинга за солнечными панелями',
 ]
 
-const team = [
-  {
-    name: 'Denis Amirov',
-    role: 'Backend developer',
-    image: '/images/backender.jpg',
-    stack: ['Node.js', 'MongoDB', 'Docker', 'nginx'],
-  },
-  {
-    name: 'Denis Amirov',
-    role: 'Frontend developer',
-    image: '/images/frontender.jpg',
-    stack: ['React', 'Redux', 'Bootstrap', 'GSAP'],
-  },
-]
-
 export const Gallery = () => {
   const sectionRef = useRef(null)
   const titleRef = useRef(null)
   const introRef = useRef(null)
   const cardsRef = useRef([])
+  const [team, setTeam] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    GET(endpoints.teamMembers)
+      .then((data) => {
+        if (Array.isArray(data)) setTeam(data)
+      })
+      .finally(() => setLoading(false))
+  }, [])
 
   useEffect(() => {
     if (!sectionRef.current) return
@@ -67,7 +64,7 @@ export const Gallery = () => {
       })
     }, sectionRef)
     return () => ctx.revert()
-  }, [])
+  }, [team.length])
 
   return (
     <main className={Styles.gallery} ref={sectionRef}>
@@ -89,31 +86,51 @@ export const Gallery = () => {
       </section>
 
       <section className={Styles.cards}>
-        {team.map((member, i) => (
-          <article
-            key={i}
-            ref={(el) => { cardsRef.current[i] = el }}
-            className={Styles.card}
-          >
-            <div className={Styles.cardImageWrap}>
-              <img
-                src={member.image}
-                alt={member.name}
-                className={Styles.cardImage}
-              />
-              <div className={Styles.cardOverlay} />
-            </div>
-            <div className={Styles.cardBody}>
-              <h3 className={Styles.cardName}>{member.name}</h3>
-              <span className={Styles.cardRole}>{member.role}</span>
-              <div className={Styles.cardStack}>
-                {member.stack.map((tech, j) => (
-                  <span key={j} className={Styles.stackPill}>{tech}</span>
-                ))}
+        {loading ? (
+          <p className={Styles.subtitle}>Загрузка команды...</p>
+        ) : team.length === 0 ? (
+          <p className={Styles.subtitle}>Участники пока не добавлены</p>
+        ) : (
+          team.map((member, i) => (
+            <article
+              key={member._id || i}
+              ref={(el) => { cardsRef.current[i] = el }}
+              className={Styles.card}
+            >
+              <div className={Styles.cardImageWrap}>
+                {member.image ? (
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className={Styles.cardImage}
+                  />
+                ) : (
+                  <div className={Styles.cardImagePlaceholder}>
+                    {member.name.charAt(0)}
+                  </div>
+                )}
+                <div className={Styles.cardOverlay} />
               </div>
-            </div>
-          </article>
-        ))}
+              <div className={Styles.cardBody}>
+                {member.group === 'руководитель' && (
+                  <span className={Styles.cardGroupBadge}>Руководитель</span>
+                )}
+                <h3 className={Styles.cardName}>{member.name}</h3>
+                {member.description && (
+                  <span className={Styles.cardRole}>{member.description}</span>
+                )}
+                {member.organization && (
+                  <span className={Styles.cardOrg}>{member.organization}</span>
+                )}
+                <div className={Styles.cardStack}>
+                  {(member.skills || []).map((tech, j) => (
+                    <span key={j} className={Styles.stackPill}>{tech}</span>
+                  ))}
+                </div>
+              </div>
+            </article>
+          ))
+        )}
       </section>
     </main>
   )

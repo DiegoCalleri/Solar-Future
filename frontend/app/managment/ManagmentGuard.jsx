@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useSelector, useDispatch } from 'react-redux'
-import { openPopup, pushOpen } from '../../redux/features/counter/counterSlice'
+import { openPopup, pushOpen, closePopup } from '../../redux/features/counter/counterSlice'
 
 export function ManagmentGuard({ children }) {
   const router = useRouter()
@@ -16,12 +16,14 @@ export function ManagmentGuard({ children }) {
   useEffect(() => {
     if (pathname == null || !pathname.startsWith('/managment')) return
     if (!user) {
+      dispatch(closePopup())
       router.replace('/')
       dispatch(openPopup())
       dispatch(pushOpen('Необходимо войти в аккаунт'))
       return
     }
     if (!isAdmin) {
+      dispatch(closePopup())
       router.replace('/')
       dispatch(pushOpen('Доступ только для администратора'))
       return

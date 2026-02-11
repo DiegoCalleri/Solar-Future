@@ -146,6 +146,21 @@
   transition: transform 0.5s ease;
 }
 
+.cardImagePlaceholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gallery-surface-hover);
+  color: var(--gallery-accent);
+  font-size: 3rem;
+  font-weight: 700;
+}
+
 .card:hover .cardImage {
   transform: scale(1.06);
 }
@@ -168,13 +183,33 @@
   color: #fff;
 }
 
-.cardRole {
+.cardGroupBadge {
   display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  margin-bottom: 0.5rem;
+  background: var(--gallery-accent-soft);
+  color: var(--gallery-accent);
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cardRole {
+  display: block;
   font-size: 0.85rem;
   color: var(--gallery-accent);
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 0.35rem;
   letter-spacing: 0.02em;
+}
+
+.cardOrg {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--gallery-text-muted);
+  margin-bottom: 0.75rem;
 }
 
 .cardStack {

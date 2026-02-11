@@ -70,6 +70,24 @@ export const EditPoint = ({ name, data }) => {
                     </Popup>
                 </>
             }
+
+            {name === 'team_members' &&
+                <>
+                    <Card style={{ width: '18rem' }}>
+                        {data.image ? <Card.Img variant="top" src={data.image} /> : null}
+                        <Card.Body>
+                            <Card.Title>{data.name}</Card.Title>
+                            {data.group === 'руководитель' && <Card.Text className="text-muted small">Руководитель</Card.Text>}
+                            <Card.Text>{data.description}</Card.Text>
+                            {data.organization ? <Card.Text className="small">{data.organization}</Card.Text> : null}
+                            <Button variant="primary" onClick={() => openPopups(data._id)}>Редактировать</Button>
+                        </Card.Body>
+                    </Card>
+                    <Popup id={data._id}>
+                        <EditorPanel data={data} name={name} />
+                    </Popup>
+                </>
+            }
         </>
     )
 }
