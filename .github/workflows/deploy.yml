@@ -19,6 +19,7 @@ jobs:
           script: |
             export NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}"
             export CORS_ORIGINS="${{ vars.CORS_ORIGINS }}"
+            export API_KEY="${{ secrets.API_KEY }}"
             cd ~/Solar-Future
             git pull origin main
             docker compose up -d --build --force-recreate

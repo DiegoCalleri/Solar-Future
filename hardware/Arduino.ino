@@ -179,8 +179,9 @@ void checker(String buffer) {
   else if (firstChar == 'D' || firstChar == 'd') {
     Serial.println("[CHECKER] Digital pin command detected");
     
-    if (buffer.length() < 6) {
-      Serial.print("[CHECKER] ERROR: Buffer too short for digital command. Expected >=6, got ");
+    // Формат команды: DXXYY (D + 2 цифры пина + 2 цифры действия) = 5 символов
+    if (buffer.length() < 5) {
+      Serial.print("[CHECKER] ERROR: Buffer too short for digital command. Expected >=5, got ");
       Serial.println(buffer.length());
       Serial.print("[CHECKER] Full buffer: \"");
       Serial.print(buffer);
@@ -188,9 +189,10 @@ void checker(String buffer) {
       return;
     }
     
-    // Парсинг: формат должен быть DXXYY где XX - номер пина, YY - действие
-    String pinStr = buffer.substring(1, 3);  // Берем символы 1-2 (после 'D')
-    String actionStr = buffer.substring(3, 5); // Берем символы 3-4
+    // Парсинг: формат DXXYY где XX - номер пина (2 цифры), YY - действие (2 цифры)
+    // Пример: D0501 = D + pin 05 + action 01
+    String pinStr = buffer.substring(1, 3);  // Символы 1-2 (после 'D') = "05"
+    String actionStr = buffer.substring(3, 5); // Символы 3-4 = "01"
     
     Serial.print("[CHECKER] Pin string: \"");
     Serial.print(pinStr);
