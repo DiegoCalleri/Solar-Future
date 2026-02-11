@@ -1,26 +1,30 @@
 const net = require('net');
 
 // Хранилище активных соединений от модемов
-// Ключ: host:port (из БД устройств), Значение: массив активных сокетов
+// Ключ: IP модема, Значение: массив сокетов (новые в начале — unshift)
 const activeConnections = new Map();
+// Все сокеты в порядке подключения (новый в конце) — для приоритета нового при опросе
+const connectionOrder = [];
 
 const getTimestamp = () => {
     return new Date().toISOString().replace('T', ' ').substring(0, 19);
 };
 
-// Удалить сокет из activeConnections (при закрытии, ошибке или ошибке записи)
+// Удалить сокет из activeConnections и connectionOrder
 const removeSocketFromMap = (socket) => {
     if (!socket || !socket.remoteAddress) return;
     const modemKey = socket.remoteAddress;
-    if (!activeConnections.has(modemKey)) return;
-    const connections = activeConnections.get(modemKey);
-    const index = connections.indexOf(socket);
-    if (index === -1) return;
-    connections.splice(index, 1);
-    console.log(`[${getTimestamp()}] 🗑️  Удалено соединение для ${modemKey} (осталось: ${connections.length})`);
-    if (connections.length === 0) {
-        activeConnections.delete(modemKey);
+    if (activeConnections.has(modemKey)) {
+        const connections = activeConnections.get(modemKey);
+        const index = connections.indexOf(socket);
+        if (index > -1) {
+            connections.splice(index, 1);
+            console.log(`[${getTimestamp()}] 🗑️  Удалено соединение для ${modemKey} (осталось: ${connections.length})`);
+            if (connections.length === 0) activeConnections.delete(modemKey);
+        }
     }
+    const orderIndex = connectionOrder.indexOf(socket);
+    if (orderIndex > -1) connectionOrder.splice(orderIndex, 1);
 };
 
 const bufferToHex = (buffer) => {
@@ -30,11 +34,11 @@ const bufferToHex = (buffer) => {
 };
 
 // Функция для отправки команды на модем через активное соединение
+// Приоритет: новое подключение опрашивается первым
 const sendCommandToModem = (host, port, command) => {
-    // Ищем соединение по IP адресу модема (host) или используем первое доступное
     let targetSocket = null;
-    
-    // Сначала пытаемся найти по host (IP адресу)
+
+    // Сначала по host: берём первый живой сокет (у этого ключа новые в начале — приоритет нового)
     if (activeConnections.has(host)) {
         const connections = activeConnections.get(host);
         for (const socket of connections) {
@@ -44,18 +48,16 @@ const sendCommandToModem = (host, port, command) => {
             }
         }
     }
-    
-    // Если не нашли по host, используем первое доступное соединение
-    if (!targetSocket) {
-        for (const [key, connections] of activeConnections.entries()) {
-            for (const socket of connections) {
-                if (!socket.destroyed && socket.writable) {
-                    targetSocket = socket;
-                    console.log(`[${getTimestamp()}] 💡 Используется соединение от ${key} (запрошено ${host}:${port})`);
-                    break;
-                }
+
+    // Если не нашли по host — берём самое новое подключение среди всех (с конца connectionOrder)
+    if (!targetSocket && connectionOrder.length > 0) {
+        for (let i = connectionOrder.length - 1; i >= 0; i--) {
+            const socket = connectionOrder[i];
+            if (!socket.destroyed && socket.writable) {
+                targetSocket = socket;
+                console.log(`[${getTimestamp()}] 💡 Используется соединение от ${socket.remoteAddress} (запрошено ${host}:${port}, приоритет нового)`);
+                break;
             }
-            if (targetSocket) break;
         }
     }
     
@@ -98,8 +100,9 @@ const server = net.createServer((socket) => {
     if (!activeConnections.has(modemKey)) {
         activeConnections.set(modemKey, []);
     }
-    activeConnections.get(modemKey).push(socket);
-    console.log(`[${getTimestamp()}] 💾 Сохранено активное соединение для ${modemKey} (всего: ${activeConnections.get(modemKey).length})`);
+    activeConnections.get(modemKey).unshift(socket);
+    connectionOrder.push(socket);
+    console.log(`[${getTimestamp()}] 💾 Сохранено активное соединение для ${modemKey} (всего: ${activeConnections.get(modemKey).length}, приоритет у нового)`);
 
     // TCP keepalive — ОС периодически проверяет соединение; после перезагрузки модема соединение будет закрыто
     socket.setKeepAlive(true, 30 * 1000);
@@ -260,7 +263,7 @@ server.on('error', (err) => {
     // Не завершаем процесс, сервер продолжит работу
 });
 
-// Периодически удаляем из карты сокеты, уже уничтоженные (если событие close не сработало)
+// Периодически удаляем из карты и connectionOrder сокеты, уже уничтоженные
 const DEAD_SOCKET_CLEANUP_INTERVAL_MS = 60 * 1000;
 setInterval(() => {
     for (const [modemKey, connections] of activeConnections.entries()) {
@@ -271,6 +274,13 @@ setInterval(() => {
             console.log(`[${getTimestamp()}] 🧹 Очистка: удалено ${removed} мёртвых соединений для ${modemKey}`);
             if (alive.length === 0) activeConnections.delete(modemKey);
         }
+    }
+    const before = connectionOrder.length;
+    for (let i = connectionOrder.length - 1; i >= 0; i--) {
+        if (connectionOrder[i].destroyed) connectionOrder.splice(i, 1);
+    }
+    if (connectionOrder.length !== before) {
+        console.log(`[${getTimestamp()}] 🧹 Очистка connectionOrder: было ${before}, осталось ${connectionOrder.length}`);
     }
 }, DEAD_SOCKET_CLEANUP_INTERVAL_MS);
 
