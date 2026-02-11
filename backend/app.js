@@ -30,3 +30,8 @@ app.listen(port, () => {
 tcpServer.listen(tcpPort, () => {
   console.log(`TCP server (modem) listening on port ${tcpPort}`);
 });
+
+// Обработка ошибок TCP сервера
+tcpServer.on('error', (err) => {
+  console.error(`TCP Server error:`, err.code, err.message);
+});
