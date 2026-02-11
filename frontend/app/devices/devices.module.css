@@ -3,3 +3,37 @@
     flex-wrap: wrap;
     gap: 10px;
 }
+
+.devices__header {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.log__body {
+    font-size: 0.9rem;
+}
+
+.log__table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.log__table th,
+.log__table td {
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.log__table th {
+    font-weight: 600;
+    background: #f8f9fa;
+}
+
+.log__row_ok {
+    background: #f0f9f0;
+}
+
+.log__row_err {
+    background: #fff5f5;
+}

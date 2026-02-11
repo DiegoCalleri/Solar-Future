@@ -26,7 +26,7 @@ const digitalWrite = (req, res, next) => {
             console.log(`[${getTimestamp()}] ⏱️  Таймаут ожидания ответа от модема`);
             req.data = { "data": "timeout" };
             next();
-        }, 5000);
+        }, 20000);
         
         // Сохраняем callback для обработки ответа
         // Ответ будет обработан в TCP сервере и сохранен в req
@@ -54,12 +54,12 @@ const analogRead = (req, res, next) => {
     const success = sendCommandToModem(host, port, command);
     
     if (success) {
-        // Команда отправлена, ждем ответ через TCP сервер
+        // Команда отправлена, ждем ответ через TCP сервер (20 сек — модем может отвечать медленно)
         const timeout = setTimeout(() => {
             console.log(`[${getTimestamp()}] ⏱️  Таймаут ожидания ответа от модема`);
             req.data = { "data": "timeout" };
             next();
-        }, 5000);
+        }, 20000);
         
         req._commandTimeout = timeout;
         req._command = command;

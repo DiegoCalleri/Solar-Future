@@ -18,16 +18,30 @@ export const MyCard = (props) => {
   }
 
   useEffect(() => {
-    setInterval(async () => {
-      if (props.params == 'analog_sensors') {
-        const res = await POST(endpoints.sensorData, { "number": props.data.number,
-          "host": props.data.host,
-          "port": props.data.port
-         })
-        res ? setState(res.data) : res
+    if (props.params !== 'analog_sensors') return
+    const payload = { number: props.data.number, host: props.data.host, port: props.data.port }
+    const poll = async () => {
+      const start = Date.now()
+      const res = await POST(endpoints.sensorData, payload, { timeoutMs: 25000 })
+      const duration = Date.now() - start
+      const entry = {
+        time: new Date().toLocaleTimeString('ru-RU'),
+        name: props.data.name,
+        number: props.data.number,
+        host: props.data.host,
+        port: props.data.port,
+        duration,
+        ok: res && !(res instanceof Error) && res.data !== undefined,
+        value: res?.data,
+        error: res instanceof Error ? res.message : (res?.data === 'timeout' ? 'Таймаут' : res?.data === 'no_connection' ? 'Нет соединения' : null),
       }
-    }, 5000)
-  }, [])
+      props.onPollLog?.(entry)
+      if (res && !(res instanceof Error)) setState(res.data)
+    }
+    poll()
+    const id = setInterval(poll, 5000)
+    return () => clearInterval(id)
+  }, [props.params, props.data?.number, props.data?.host, props.data?.port, props.data?.name])
 
   return (
     <Card className={Styles["card"]}>

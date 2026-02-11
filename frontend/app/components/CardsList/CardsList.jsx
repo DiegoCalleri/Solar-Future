@@ -6,7 +6,7 @@ export const CardsList = (props) => {
         <div className={Styles["CardsList"]}>
             {props.data && props.data.map((item) => {
                 return (
-                    <MyCard key={item._id} data={item} params={props.params} />
+                    <MyCard key={item._id} data={item} params={props.params} onPollLog={props.onPollLog} />
                 )
             })}
         </div>

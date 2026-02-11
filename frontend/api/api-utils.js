@@ -12,17 +12,23 @@ export const GET = async (url) => {
 }
 
 
-export const POST = async (url, data) => {
+export const POST = async (url, data, options = {}) => {
+    const { timeoutMs } = options
+    const controller = timeoutMs ? new AbortController() : null
+    const timeoutId = controller && timeoutMs ? setTimeout(() => controller.abort(), timeoutMs) : null
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
+            signal: controller?.signal,
         })
+        if (timeoutId) clearTimeout(timeoutId)
         const result = await response.json()
         return result
     }
     catch (error) {
+        if (timeoutId) clearTimeout(timeoutId)
         return error
     }
 }
