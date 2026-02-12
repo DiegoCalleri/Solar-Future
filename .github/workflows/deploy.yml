@@ -30,3 +30,4 @@ jobs:
             docker volume create ${PROJECT_NAME}_uploads_data 2>/dev/null || true
             # Важно: --force-recreate пересоздаёт контейнеры, но НЕ удаляет volumes
             docker compose up -d --build --force-recreate
+            docker exec backend npm install || echo "Зависимости уже установлены или контейнер не запущен"

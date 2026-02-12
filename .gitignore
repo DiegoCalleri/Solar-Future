@@ -2,6 +2,7 @@
 .env
 /mongo/db/
 /api/node_modules
+/backend/node_modules
 /api/compass-export/
 deploy_*
 /backend/uploads/
