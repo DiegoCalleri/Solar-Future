@@ -23,4 +23,10 @@ jobs:
             export JWT_SECRET="${{ vars.JWT_SECRET }}"
             cd ~/Solar-Future
             git pull origin main
+            # Создаём volumes явно перед деплоем (если их нет)
+            # Имя volume формируется как {project_name}_{volume_name}, где project_name = имя директории
+            PROJECT_NAME=$(basename $(pwd) | tr '[:upper:]' '[:lower:]' | tr -d ' ')
+            docker volume create ${PROJECT_NAME}_mongodb_data 2>/dev/null || true
+            docker volume create ${PROJECT_NAME}_uploads_data 2>/dev/null || true
+            # Важно: --force-recreate пересоздаёт контейнеры, но НЕ удаляет volumes
             docker compose up -d --build --force-recreate
