@@ -30,6 +30,11 @@ export default function page() {
       "name": "Загрузка медиа",
       "description": "Загрузка изображений, видео и других медиафайлов",
       "link": "/managment/uploads"
+    },
+    {
+      "name": "Заказы и вопросы",
+      "description": "Просмотр всех заказов и вопросов от пользователей",
+      "link": "/managment/orders"
     }
   ]
 

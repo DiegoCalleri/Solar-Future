@@ -1,0 +1,63 @@
+.container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.header {
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  padding: 1.5rem;
+}
+
+.header h2 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.question {
+  max-width: 400px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.tableWrapper table {
+  margin-bottom: 0;
+}
+
+.tableWrapper th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tableWrapper td a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.tableWrapper td a:hover {
+  text-decoration: underline;
+}

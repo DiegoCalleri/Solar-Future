@@ -4,4 +4,9 @@ const sendOrderCreated = (req, res) => {
         Сотрудники Solar Future вернуться к Вам с ответом в ближайшее время`}));
 };
 
-module.exports = sendOrderCreated
+const sendAllOrders = (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(req.orders));
+};
+
+module.exports = { sendOrderCreated, sendAllOrders };

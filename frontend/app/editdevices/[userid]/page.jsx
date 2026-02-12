@@ -7,7 +7,7 @@ import { BASE_URL } from "../../../api/config"
 import Styles from './EditDevices.module.css'
 import { Pagination } from "react-bootstrap"
 import { useDispatch } from 'react-redux'
-import { pushOpen, update } from '../../redux/features/counter/counterSlice'
+import { pushOpen, update, closePopup } from '../../redux/features/counter/counterSlice'
 import { CustomToast } from "../../components/CustomToast/CustomToast"
 import { SideBar } from '../../components/SideBar/SideBar'
 import { Nav } from "react-bootstrap"
@@ -57,6 +57,9 @@ export default function page() {
     }, [myDigitalPins, myAnalogSensors, otherDigitalPins, otherAnalogSensors, currentPage, content])
 
     useEffect(() => {
+        // Закрываем popup при загрузке страницы, чтобы убрать затемнение
+        dispatch(closePopup())
+        
         async function fetchData() {
             const data = await GET(`${BASE_URL}/users/${params.userid}`)
             setData(data)
@@ -67,7 +70,7 @@ export default function page() {
         }
         fetchData()
 
-    }, [])
+    }, [dispatch, params.userid])
 
 
     const findMyDevices = (deviceData, userDataArray) => {
