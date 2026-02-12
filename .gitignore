@@ -4,3 +4,4 @@
 /api/node_modules
 /api/compass-export/
 deploy_*
+/backend/uploads/

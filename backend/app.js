@@ -18,6 +18,7 @@ connectToDatabase();
 app.use(cors, 
         bodyParser.json(), 
         express.static(path.join(__dirname, 'public')),
+        express.static(path.join(__dirname, 'uploads')), // Раздача загруженных файлов
         apiRouter);
 app.get('/', (req, res) => {
   res.send('Home Route');

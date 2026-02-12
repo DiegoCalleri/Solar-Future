@@ -9,6 +9,7 @@ export const endpoints = {
   user: `${BASE_URL}/users/`,
   order: `${BASE_URL}/orders/`,
   teamMembers: `${BASE_URL}/team_members`,
+  upload: `${BASE_URL}/uploads`,
 };
 
 export const allowedResorses = ['/team', '/order']

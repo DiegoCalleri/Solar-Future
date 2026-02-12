@@ -137,4 +137,31 @@ export const getMe = async (url, jwt) => {
 
 export const isResponseOk = (response) => {
     return !(response instanceof Error)
-  }
+}
+
+export const UPLOAD_FILE = async (url, file) => {
+    const jwt = getJWT()
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    const headers = {}
+    if (jwt) headers['Authorization'] = `Bearer ${jwt}`
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers,
+            body: formData,
+        })
+        
+        if (!response.ok) {
+            const error = await response.json()
+            throw new Error(error.message || 'Ошибка загрузки файла')
+        }
+        
+        const result = await response.json()
+        return result
+    } catch (error) {
+        return error
+    }
+}

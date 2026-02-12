@@ -25,6 +25,11 @@ export default function page() {
       "name": "Аналоговые датчики",
       "description": "Добавление, обновление и удаление данных по сенсорам",
       "link": "/managment/analog_sensors"
+    },
+    {
+      "name": "Загрузка медиа",
+      "description": "Загрузка изображений, видео и других медиафайлов",
+      "link": "/managment/uploads"
     }
   ]
 

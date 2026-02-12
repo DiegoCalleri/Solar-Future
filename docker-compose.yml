@@ -22,6 +22,7 @@ services:
     volumes:     
       - ./backend:/app      
       - /app/node_modules
+      - uploads_data:/app/uploads
     depends_on:
       - mongodb
   front:    
@@ -75,3 +76,4 @@ services:
 
 volumes:
   mongodb_data:
+  uploads_data:
