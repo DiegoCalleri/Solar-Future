@@ -14,10 +14,16 @@ const findAllUsers = async (req, res, next) => {
 const findUserById = async (req, res, next) => {
     console.log("GET /users/:id");
     try {
-        req.user = await users.findById(req.params.id);
-        if (!req.user) {
+        // Сохраняем данные авторизованного пользователя перед перезаписью
+        req.authUser = req.user; // req.user содержит данные из JWT (авторизованный пользователь)
+        
+        // Получаем данные запрашиваемого пользователя
+        req.requestedUser = await users.findById(req.params.id);
+        if (!req.requestedUser) {
             return res.status(404).send({ message: "Пользователь не найден" });
         }
+        // Устанавливаем запрашиваемого пользователя в req.user для отправки клиенту
+        req.user = req.requestedUser;
         next();
     }
     catch (err) {

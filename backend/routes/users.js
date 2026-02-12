@@ -5,11 +5,13 @@ const { findAllUsers, findUserById, createUser, updateUser,
     findUserByIdDevices, checkUserIsAdmin } = require('../middlewares/users')
 const { sendAllUsers, sendUserCreated, sendUserUpdated, sendUserDeleted, sendMe } = require('../controllers/users');
 const { checkAuth } = require("../middlewares/auth.js");
+const { checkAdmin } = require("../middlewares/checkAdmin.js");
 
 
 userRouter.get('/users', findAllUsers, sendAllUsers);
 userRouter.get('/users/devices/:id', findUserByIdDevices, sendAllUsers);
-userRouter.get('/users/:id', findUserById, checkUserIsAdmin, sendAllUsers);
+// Проверяем админа ДО получения данных пользователя, чтобы проверить роль авторизованного пользователя
+userRouter.get('/users/:id', checkAuth, checkAdmin, findUserById, sendAllUsers);
 userRouter.delete("/users/:id", checkAuth, deleteUser, sendUserDeleted);
 userRouter.post("/users", checkAuth, checkEmptyNameAndEmail, hashPassword, createUser, sendUserCreated);
 userRouter.put("/users/:id", checkAuth, checkEmptyNameAndEmail, hashPassword, updateUser, sendUserUpdated);
