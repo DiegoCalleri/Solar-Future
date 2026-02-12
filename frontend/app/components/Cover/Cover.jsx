@@ -11,7 +11,7 @@ export const Cover = ({ imgPath, title, description, btnTitle }) => {
 
       <div
         className={Styles["cover__img"]} style={{ backgroundImage: `url(${imgPath})` }}>
-        <div className={Styles["cover__mask"]} style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
+        <div className={Styles["cover__mask"]} style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
           <div className='d-flex justify-content-center align-items-center h-100'>
             <div className={Styles["cover__title"]}>
               <h1 className='mb-3'>{title}</h1>
