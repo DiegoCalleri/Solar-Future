@@ -14,7 +14,7 @@ import { Nav } from "react-bootstrap"
 
 export default function page() {
 
-    const [data, setData] = useState([])
+    const [data, setData] = useState(null)
     const [digitalPins, setDigitalPins] = useState([])
     const [analogSensors, setAnalogSensors] = useState([])
 
@@ -61,12 +61,26 @@ export default function page() {
         dispatch(closePopup())
         
         async function fetchData() {
-            const data = await GET(`${BASE_URL}/users/${params.userid}`)
-            setData(data)
-            const dP = await GET(`${BASE_URL}/digital_pins`)
-            setDigitalPins(dP)
-            const aS = await GET(`${BASE_URL}/analog_sensors`)
-            setAnalogSensors(aS)
+            try {
+                const userData = await GET(`${BASE_URL}/users/${params.userid}`)
+                if (userData && !(userData instanceof Error)) {
+                    setData(userData)
+                }
+                const dP = await GET(`${BASE_URL}/digital_pins`)
+                if (dP && !(dP instanceof Error) && Array.isArray(dP)) {
+                    setDigitalPins(dP)
+                } else {
+                    setDigitalPins([])
+                }
+                const aS = await GET(`${BASE_URL}/analog_sensors`)
+                if (aS && !(aS instanceof Error) && Array.isArray(aS)) {
+                    setAnalogSensors(aS)
+                } else {
+                    setAnalogSensors([])
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error)
+            }
         }
         fetchData()
 
@@ -74,6 +88,9 @@ export default function page() {
 
 
     const findMyDevices = (deviceData, userDataArray) => {
+        if (!Array.isArray(deviceData) || !Array.isArray(userDataArray)) {
+            return []
+        }
         const myDevices = deviceData.filter((item) => {
             return userDataArray.find((j) => {
                 return j === item._id
@@ -83,6 +100,9 @@ export default function page() {
     }
 
     const findOtherDevices = (devicesData, myDevices) => {
+        if (!Array.isArray(devicesData) || !Array.isArray(myDevices)) {
+            return Array.isArray(devicesData) ? devicesData : []
+        }
         return devicesData.filter(element => {
             return !myDevices.includes(element);
         });
@@ -90,8 +110,13 @@ export default function page() {
 
 
     useEffect(() => {
-        const myDP_ = findMyDevices(digitalPins, data.digital_pins)
-        const myAS_ = findMyDevices(analogSensors, data.analog_sensors)
+        // Проверяем, что данные загружены и являются массивами
+        if (!data || typeof data !== 'object' || Array.isArray(data) || !Array.isArray(digitalPins) || !Array.isArray(analogSensors)) {
+            return
+        }
+        
+        const myDP_ = findMyDevices(digitalPins, Array.isArray(data.digital_pins) ? data.digital_pins : [])
+        const myAS_ = findMyDevices(analogSensors, Array.isArray(data.analog_sensors) ? data.analog_sensors : [])
 
         const otherDP_ = findOtherDevices(digitalPins, myDP_)
         const otherAS_ = findOtherDevices(analogSensors, myAS_)
@@ -118,29 +143,44 @@ export default function page() {
 
 
     const handleUpdate = async () => {
-        const res = await PUT(`${BASE_URL}/users/${data._id}`, data)
-        const newData = await GET(`${BASE_URL}/users/${params.userid}`)
-        setData(newData)
-        dispatch(pushOpen(res.message))
-        dispatch(update())
-        setUdpate(false)
+        if (!data || !data._id) {
+            return
+        }
+        try {
+            const res = await PUT(`${BASE_URL}/users/${data._id}`, data)
+            const newData = await GET(`${BASE_URL}/users/${params.userid}`)
+            if (newData && !(newData instanceof Error)) {
+                setData(newData)
+            }
+            if (res && res.message) {
+                dispatch(pushOpen(res.message))
+            }
+            dispatch(update())
+            setUdpate(false)
+        } catch (error) {
+            console.error('Error updating user:', error)
+            dispatch(pushOpen('Ошибка при обновлении данных'))
+        }
     }
 
     const updateDevicesData = (action, id, array) => {
+        if (!data || !Array.isArray(data[array])) {
+            return
+        }
 
         if (action == "delete") {
-            const newData = data[`${array}`].filter((idx) => {
+            const newData = data[array].filter((idx) => {
                 return idx !== id
             })
-            setData({ ...data, [`${array}`]: newData })
+            setData({ ...data, [array]: newData })
         }
 
         if (action == "add") {
-            const newData = data[`${array}`].filter((idx) => {
-                return idx !== id
-            })
-            newData.push(id)
-            setData({ ...data, [`${array}`]: newData })
+            const newData = [...(data[array] || [])]
+            if (!newData.includes(id)) {
+                newData.push(id)
+                setData({ ...data, [array]: newData })
+            }
         }
         setUdpate(true)
     }
@@ -163,7 +203,11 @@ export default function page() {
                     </div>
                 </SideBar>
                 {
-                    digitalPins ? <EditTable data={currentDevices} paramsTable={MyTable} handleFunction={updateDevicesData} /> : "Загрузка"
+                    data && Array.isArray(digitalPins) && Array.isArray(analogSensors) ? (
+                        <EditTable data={currentDevices} paramsTable={MyTable} handleFunction={updateDevicesData} />
+                    ) : (
+                        <div>Загрузка...</div>
+                    )
                 }
                 <div className={Styles["editdevices__buttons"]}>
                     <Pagination size="sm">{items}</Pagination>
