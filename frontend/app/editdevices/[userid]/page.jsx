@@ -1,6 +1,6 @@
 'use client'
 import { EditTable } from "../../components/EditTable/EditTable"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { GET, PUT } from "../../../api/api-utils"
 import { useParams } from "next/navigation"
 import { BASE_URL } from "../../../api/config"
@@ -62,9 +62,20 @@ export default function page() {
         
         async function fetchData() {
             try {
+                console.log('Fetching user data for:', params.userid)
                 const userData = await GET(`${BASE_URL}/users/${params.userid}`)
+                console.log('User data received:', userData)
                 if (userData && !(userData instanceof Error)) {
-                    setData(userData)
+                    // Убеждаемся, что digital_pins и analog_sensors являются массивами
+                    const normalizedData = {
+                        ...userData,
+                        digital_pins: Array.isArray(userData.digital_pins) ? userData.digital_pins : [],
+                        analog_sensors: Array.isArray(userData.analog_sensors) ? userData.analog_sensors : []
+                    }
+                    console.log('Normalized user data:', normalizedData)
+                    setData(normalizedData)
+                } else {
+                    console.error('Failed to fetch user data:', userData)
                 }
                 const dP = await GET(`${BASE_URL}/digital_pins`)
                 if (dP && !(dP instanceof Error) && Array.isArray(dP)) {
@@ -88,13 +99,17 @@ export default function page() {
 
 
     const findMyDevices = (deviceData, userDataArray) => {
-        if (!Array.isArray(deviceData) || !Array.isArray(userDataArray)) {
+        if (!Array.isArray(deviceData) || !userDataArray) {
             return []
         }
+        // userDataArray может быть массивом ID (строк) или массивом объектов с _id
+        const userDeviceIds = Array.isArray(userDataArray) 
+            ? userDataArray.map(item => typeof item === 'string' ? item : (item._id || item)).map(String)
+            : []
+        
         const myDevices = deviceData.filter((item) => {
-            return userDataArray.find((j) => {
-                return j === item._id
-            })
+            const deviceId = String(item._id || item)
+            return userDeviceIds.includes(deviceId)
         })
         return myDevices
     }
@@ -142,15 +157,25 @@ export default function page() {
     }, [digitalPins, analogSensors, data])
 
 
-    const handleUpdate = async () => {
+    const handleUpdate = useCallback(async () => {
         if (!data || !data._id) {
+            console.error('handleUpdate: data или data._id отсутствует', { data })
             return
         }
+        console.log('handleUpdate called with data:', { _id: data._id, digital_pins: data.digital_pins, analog_sensors: data.analog_sensors })
         try {
             const res = await PUT(`${BASE_URL}/users/${data._id}`, data)
+            console.log('PUT response:', res)
             const newData = await GET(`${BASE_URL}/users/${params.userid}`)
+            console.log('GET newData:', newData)
             if (newData && !(newData instanceof Error)) {
-                setData(newData)
+                // Нормализуем данные при обновлении
+                const normalizedData = {
+                    ...newData,
+                    digital_pins: Array.isArray(newData.digital_pins) ? newData.digital_pins : [],
+                    analog_sensors: Array.isArray(newData.analog_sensors) ? newData.analog_sensors : []
+                }
+                setData(normalizedData)
             }
             if (res && res.message) {
                 dispatch(pushOpen(res.message))
@@ -160,35 +185,55 @@ export default function page() {
         } catch (error) {
             console.error('Error updating user:', error)
             dispatch(pushOpen('Ошибка при обновлении данных'))
+            setUdpate(false)
         }
-    }
+    }, [data, params.userid, dispatch])
 
     const updateDevicesData = (action, id, array) => {
-        if (!data || !Array.isArray(data[array])) {
+        if (!data || !data._id) {
+            console.error('updateDevicesData: data или data._id отсутствует', { data, action, id, array })
             return
         }
+        
+        // Получаем текущий массив устройств (может быть массивом ID или объектов)
+        const currentArray = data[array] || []
+        // Преобразуем в массив строк ID для работы
+        const currentIds = Array.isArray(currentArray) 
+            ? currentArray.map(item => typeof item === 'string' ? item : (item._id || item)).map(String)
+            : []
+        const deviceId = String(id)
+
+        console.log('updateDevicesData:', { action, deviceId, array, currentIds, data: data[array] })
 
         if (action == "delete") {
-            const newData = data[array].filter((idx) => {
-                return idx !== id
-            })
-            setData({ ...data, [array]: newData })
+            // Удаляем ID из массива
+            const newIds = currentIds.filter((idx) => idx !== deviceId)
+            console.log('Deleting device:', { deviceId, oldIds: currentIds, newIds })
+            setData({ ...data, [array]: newIds })
         }
 
         if (action == "add") {
-            const newData = [...(data[array] || [])]
-            if (!newData.includes(id)) {
-                newData.push(id)
-                setData({ ...data, [array]: newData })
+            // Добавляем ID, если его еще нет
+            if (!currentIds.includes(deviceId)) {
+                const newIds = [...currentIds, deviceId]
+                console.log('Adding device:', { deviceId, oldIds: currentIds, newIds })
+                setData({ ...data, [array]: newIds })
+            } else {
+                console.log('Device already exists:', deviceId)
+                return
             }
         }
+        console.log('Setting isUpdated to true')
         setUdpate(true)
     }
 
 
     useEffect(() => {
-        isUpdated ? handleUpdate() : isUpdated
-    }, [isUpdated])
+        if (isUpdated) {
+            console.log('isUpdated changed to true, calling handleUpdate', { isUpdated })
+            handleUpdate()
+        }
+    }, [isUpdated, handleUpdate])
 
     return (
         <>
