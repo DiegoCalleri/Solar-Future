@@ -42,6 +42,13 @@ export const Header = () => {
             <Nav.Link href="/order">заказать установку</Nav.Link>
             <Nav.Link href="/team">команда</Nav.Link>
           </Nav>
+          {isAuthorized && user?.username && (
+            <Navbar.Text className="me-3">
+              <span style={{ color: '#666', fontSize: '0.9rem' }}>
+                Пользователь: <strong>{user.username}</strong>
+              </span>
+            </Navbar.Text>
+          )}
           <Button variant="outline-success">
           {isAuthorized ? (
             <span onClick={handleLogout}>
