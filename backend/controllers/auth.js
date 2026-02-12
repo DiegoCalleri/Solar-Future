@@ -7,7 +7,11 @@ const login = (req, res) => {
     users
         .findUserByCredentials(email, password)
         .then((user) => {
-            const token = jwt.sign({ _id: user._id, role: user.role }, "some-secret-key",
+            const secret = process.env.JWT_SECRET;
+            if (!secret) {
+                return res.status(500).send({ message: "JWT_SECRET не задан" });
+            }
+            const token = jwt.sign({ _id: user._id, role: user.role }, secret,
                 {
                     expiresIn: '24h'
                 }

@@ -7,11 +7,12 @@ const { sendAllAnalogSensors, sendAnalogSensorsUpdated, sendAnalogSensorsDeleted
 
 const { analogRead } = require('../middlewares');
 const { sendArduinoData } = require('../controllers');
+const { checkAuth } = require('../middlewares/auth');
 
 sensorRouter.get('/analog_sensors', findAllAnalogSensors, sendAllAnalogSensors);
-sensorRouter.post('/analog_sensors', findAllAnalogSensors, checkIsAnalogSensorsExists, createAnalogSensors, sendAnalogSensorsCreated);
-sensorRouter.delete('/analog_sensors/:id', deleteAnalogSensors, sendAnalogSensorsDeleted)
-sensorRouter.put('/analog_sensors/:id', findAnalogSensorsById, updateAnalogSensors, sendAnalogSensorsUpdated)
-sensorRouter.post('/analog_sensors/data', analogRead, sendArduinoData);
+sensorRouter.post('/analog_sensors', checkAuth, findAllAnalogSensors, checkIsAnalogSensorsExists, createAnalogSensors, sendAnalogSensorsCreated);
+sensorRouter.delete('/analog_sensors/:id', checkAuth, deleteAnalogSensors, sendAnalogSensorsDeleted);
+sensorRouter.put('/analog_sensors/:id', checkAuth, findAnalogSensorsById, updateAnalogSensors, sendAnalogSensorsUpdated);
+sensorRouter.post('/analog_sensors/data', checkAuth, analogRead, sendArduinoData);
 
 module.exports = sensorRouter;

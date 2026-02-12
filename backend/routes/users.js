@@ -10,9 +10,9 @@ const { checkAuth } = require("../middlewares/auth.js");
 userRouter.get('/users', findAllUsers, sendAllUsers);
 userRouter.get('/users/devices/:id', findUserByIdDevices, sendAllUsers);
 userRouter.get('/users/:id', findUserById, checkUserIsAdmin, sendAllUsers);
-userRouter.delete("/users/:id", deleteUser, sendUserDeleted);
+userRouter.delete("/users/:id", checkAuth, deleteUser, sendUserDeleted);
 userRouter.post("/users", checkAuth, checkEmptyNameAndEmail, hashPassword, createUser, sendUserCreated);
-userRouter.put("/users/:id", hashPassword, updateUser, checkEmptyNameAndEmail, sendUserUpdated);
+userRouter.put("/users/:id", checkAuth, hashPassword, updateUser, checkEmptyNameAndEmail, sendUserUpdated);
 userRouter.get("/me", checkAuth, sendMe);
 
 

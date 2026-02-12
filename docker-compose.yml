@@ -9,6 +9,7 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017/solar
       - CORS_ORIGINS=${CORS_ORIGINS}
       - API_KEY=${API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
     links:
       - mongodb
     restart: unless-stopped

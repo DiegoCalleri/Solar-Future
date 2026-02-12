@@ -8,8 +8,12 @@ const checkAuth = (req, res, next) => {
 
     const token = authorization.replace("Bearer ", "");
 
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        return res.status(500).send({ message: "JWT_SECRET не задан" });
+    }
     try {
-        req.user = jwt.verify(token, "some-secret-key");
+        req.user = jwt.verify(token, secret);
         console.log(req.user, token);
     } catch (err) {
         console.log(err);

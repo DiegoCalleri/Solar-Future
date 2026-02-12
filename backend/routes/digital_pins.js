@@ -7,16 +7,17 @@ const { findAllDigitalPins, findDigitalPinsById, updateDigitalPins,
 
 const { digitalWrite } = require('../middlewares')
 const { sendArduinoData } = require('../controllers');
+const { checkAuth } = require('../middlewares/auth');
 
 
 const digitalPinsRouter = require('express').Router()
 
 
 digitalPinsRouter.get('/digital_pins', findAllDigitalPins, sendAllDigitalPins);
-digitalPinsRouter.put('/digital_pins/:id', findDigitalPinsById, updateDigitalPins, sendDigitalPinsUpdated);
-digitalPinsRouter.delete('/digital_pins/:id', deleteDigitalPins, sendDigitalPinsDeleted);
-digitalPinsRouter.post('/digital_pins', findAllDigitalPins, checkIsDigitalPinsExists, createDigitalPins, sendDigitalPinsCreated);
+digitalPinsRouter.put('/digital_pins/:id', checkAuth, findDigitalPinsById, updateDigitalPins, sendDigitalPinsUpdated);
+digitalPinsRouter.delete('/digital_pins/:id', checkAuth, deleteDigitalPins, sendDigitalPinsDeleted);
+digitalPinsRouter.post('/digital_pins', checkAuth, findAllDigitalPins, checkIsDigitalPinsExists, createDigitalPins, sendDigitalPinsCreated);
 
-digitalPinsRouter.post('/digital_pins/action', digitalWrite, sendArduinoData);
+digitalPinsRouter.post('/digital_pins/action', checkAuth, digitalWrite, sendArduinoData);
 
 module.exports = digitalPinsRouter;
