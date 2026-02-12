@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
-import { UPLOAD_FILE } from '@/api/api-utils'
-import { endpoints, BASE_URL } from '@/api/config'
+import { UPLOAD_FILE } from '../../../api/api-utils'
+import { endpoints, BASE_URL } from '../../../api/config'
 import Styles from './page.module.css'
 
 export default function UploadsPage() {
