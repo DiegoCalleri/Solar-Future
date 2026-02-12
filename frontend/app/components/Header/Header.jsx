@@ -4,6 +4,7 @@ import { Navbar } from "react-bootstrap"
 import { Container } from "react-bootstrap"
 import { Nav } from "react-bootstrap"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { AuthForm } from "../AuthForm/AuthForm"
 import { Popup } from "../Popup/Popup"
 import { useDispatch } from "react-redux"
@@ -16,6 +17,7 @@ export const Header = () => {
   const user = useSelector((state) => state.counter.user)
   const [isAuthorized, setIsAuthorized] = useState(false);
   const dispatch = useDispatch();
+  const router = useRouter();
 
   useEffect(() => {
     user ? setIsAuthorized(true) : setIsAuthorized(false)
@@ -24,7 +26,9 @@ export const Header = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    setIsAuthorized(false)
+    setIsAuthorized(false);
+    // Перенаправляем на главную страницу
+    router.push('/');
   };
 
 
