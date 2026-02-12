@@ -101,22 +101,49 @@ export const authorize = async (url, data) => {
 
 
 export const setJWT = (jwt) => {
-    document.cookie = `jwt=${jwt}`
+    if (!jwt) {
+        removeJWT()
+        return
+    }
+    // Удаляем старую куку перед установкой новой
+    removeJWT()
+    
+    // Устанавливаем куку с expires (24 часа, как в токене)
+    const expires = new Date()
+    expires.setTime(expires.getTime() + (24 * 60 * 60 * 1000)) // 24 часа
+    document.cookie = `jwt=${jwt}; expires=${expires.toUTCString()}; path=/`
     localStorage.setItem('jwt', jwt)
 }
 
 
 export const getJWT = () => {
-    if (document.cookie === '') {
-        return localStorage.getItem('jwt')
+    // Сначала проверяем куки
+    const cookies = document.cookie.split(';')
+    const jwtCookie = cookies.find((item) => item.trim().startsWith('jwt='))
+    
+    if (jwtCookie) {
+        const jwt = jwtCookie.split('=')[1]?.trim()
+        if (jwt && jwt !== 'null' && jwt !== 'undefined') {
+            return jwt
+        }
     }
-    const jwt = document.cookie.split(';').find((item) => item.includes('jwt'))
-    return jwt ? jwt.split('=')[1] : null
+    
+    // Если в куках нет, проверяем localStorage
+    const jwtFromStorage = localStorage.getItem('jwt')
+    if (jwtFromStorage && jwtFromStorage !== 'null' && jwtFromStorage !== 'undefined') {
+        // Синхронизируем с куками
+        setJWT(jwtFromStorage)
+        return jwtFromStorage
+    }
+    
+    return null
 }
 
 
 export const removeJWT = () => {
-    document.cookie = 'jwt=;'
+    // Удаляем куку правильно - устанавливаем expires в прошлом и очищаем значение
+    document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+    document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname + ';'
     localStorage.removeItem('jwt')
 }
 
