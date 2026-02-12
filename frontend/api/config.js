@@ -12,4 +12,4 @@ export const endpoints = {
   upload: `${BASE_URL}/uploads`,
 };
 
-export const allowedResorses = ['/team', '/order']
+export const allowedResorses = ['/team', '/order', '/devices']

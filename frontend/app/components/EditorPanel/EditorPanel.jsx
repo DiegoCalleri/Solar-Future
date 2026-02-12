@@ -100,7 +100,10 @@ export const EditorPanel = ({ data, name }) => {
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Роль</Form.Label>
-                            <Form.Control name="role" defaultValue={isEditing ? data.role : ''} onInput={handleInput} required />
+                            <Form.Select name="role" onChange={handleInput} value={newData.role ?? (isEditing ? data.role : null) ?? 'user'} key={isEditing}>
+                                <option value="user">Пользователь</option>
+                                <option value="admin">Администратор</option>
+                            </Form.Select>
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Link href={`/editdevices/${data._id}`} onClick={handleEditUserDevices}>
