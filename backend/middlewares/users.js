@@ -66,11 +66,19 @@ const updateUser = async (req, res, next) => {
 
 
 const checkEmptyNameAndEmail = async (req, res, next) => {
-    if (!req.body.username || !req.body.email || !req.body.password) {
-        return res.status(400).send({ message: "Введите имя, email и password" });
-    } else {
-        next();
+    // При создании пользователя пароль обязателен, при редактировании - нет
+    const isUpdate = req.method === 'PUT';
+    
+    if (!req.body.username || !req.body.email) {
+        return res.status(400).send({ message: "Введите имя и email" });
     }
+    
+    // Пароль обязателен только при создании (POST)
+    if (!isUpdate && !req.body.password) {
+        return res.status(400).send({ message: "Введите пароль" });
+    }
+    
+    next();
 };
 
 
@@ -90,9 +98,21 @@ const deleteUser = async (req, res, next) => {
 
 const hashPassword = async(req, res, next) => {
     try {
+        // Если пароль не передан, пропускаем хеширование
+        if (!req.body.password) {
+            return next();
+        }
+        
+        // Проверяем, не является ли пароль уже хешем (bcrypt хеши начинаются с $2a$, $2b$ и т.д.)
+        if (req.body.password.startsWith('$2a$') || req.body.password.startsWith('$2b$') || req.body.password.startsWith('$2y$')) {
+            // Пароль уже захеширован, не хешируем повторно
+            return next();
+        }
+        
+        // Хешируем только если пароль не является хешем
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(req.body.password, salt)
-        req.body.password =  hash;
+        req.body.password = hash;
         next();
     }
 

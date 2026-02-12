@@ -27,7 +27,12 @@ export const EditorPanel = ({ data, name }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        const res = await PUT(`${BASE_URL}/${name}/${data._id}`, newData)
+        // При редактировании пользователя: если пароль пустой, не отправляем его
+        const dataToSend = { ...newData }
+        if (name === 'users' && isEditing && (!dataToSend.password || dataToSend.password.trim() === '')) {
+            delete dataToSend.password
+        }
+        const res = await PUT(`${BASE_URL}/${name}/${data._id}`, dataToSend)
         dispatch(pushOpen(res.message))
         dispatch(update())
 
@@ -95,8 +100,8 @@ export const EditorPanel = ({ data, name }) => {
                             <Form.Control name="email" type='email' onInput={handleInput} defaultValue={isEditing ? data.email : ''} required />
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>Пароль</Form.Label>
-                            <Form.Control name="password" type="password" onInput={handleInput} defaultValue={isEditing ? data.password : ''} required />
+                            <Form.Label>Пароль {isEditing && <span className="text-muted">(оставьте пустым, чтобы не менять)</span>}</Form.Label>
+                            <Form.Control name="password" type="password" onInput={handleInput} placeholder={isEditing ? "Оставьте пустым, чтобы не менять пароль" : "Введите пароль"} required={!isEditing} />
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Роль</Form.Label>

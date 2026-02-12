@@ -1,6 +1,9 @@
 export const GET = async (url) => {
+    const jwt = getJWT()
+    const headers = {}
+    if (jwt) headers['Authorization'] = `Bearer ${jwt}`
     try {
-        const response = await fetch(url)
+        const response = await fetch(url, { headers })
         if (response.status !== 200) {
             throw new Error('Ошибка получения данных')
         }
