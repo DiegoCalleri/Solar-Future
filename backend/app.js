@@ -15,11 +15,12 @@ const tcpPort = process.env.TCP_PORT || 7070;
 
 connectToDatabase();
 
-app.use(cors, 
-        bodyParser.json(), 
-        express.static(path.join(__dirname, 'public')),
-        express.static(path.join(__dirname, 'uploads')), // Раздача загруженных файлов
-        apiRouter);
+app.use(cors);
+app.use(bodyParser.json());
+// Раздача статики для загруженных файлов (доступны по /api/uploads/filename)
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(apiRouter);
 app.get('/', (req, res) => {
   res.send('Home Route');
 });
