@@ -64,6 +64,15 @@
     background: rgba(220, 53, 69, 0.08);
 }
 
+.log__raw {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: monospace;
+    font-size: 0.85em;
+}
+
 /* Модалка в неоморфизме */
 .devices__modal .modal-content {
     border: none;

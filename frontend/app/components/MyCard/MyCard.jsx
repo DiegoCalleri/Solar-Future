@@ -33,6 +33,7 @@ export const MyCard = (props) => {
         duration,
         ok: res && !(res instanceof Error) && res.data !== undefined,
         value: res?.data,
+        raw: res?.raw ?? '',
         error: res instanceof Error ? res.message : (res?.data === 'timeout' ? 'Таймаут' : res?.data === 'no_connection' ? 'Нет соединения' : null),
       }
       props.onPollLog?.(entry)

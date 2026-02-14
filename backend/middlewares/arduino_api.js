@@ -61,7 +61,7 @@ const analogRead = (req, res, next) => {
             req.data = data;
             next();
         };
-        registerPendingAnalogResolve((voltage) => finish({ data: voltage }));
+        registerPendingAnalogResolve((voltage, raw) => finish({ data: voltage, raw: raw || '' }));
         req._commandTimeout = setTimeout(() => {
             console.log(`[${getTimestamp()}] ⏱️  Таймаут ожидания ответа от модема`);
             finish({ data: "timeout" });

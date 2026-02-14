@@ -6,12 +6,12 @@ const activeConnections = new Map();
 // Все сокеты в порядке подключения (новый в конце) — для приоритета нового при опросе
 const connectionOrder = [];
 
-// Ожидающий ответ аналогового датчика: resolve(voltage) вызовет middleware и отдаст значение на фронт
+// Ожидающий ответ аналогового датчика: resolve(voltage, raw) вызовет middleware и отдаст значение на фронт
 let _pendingAnalogResolve = null;
 const registerPendingAnalogResolve = (resolve) => { _pendingAnalogResolve = resolve; };
-const resolvePendingAnalog = (voltage) => {
+const resolvePendingAnalog = (voltage, raw) => {
     if (typeof _pendingAnalogResolve === 'function') {
-        _pendingAnalogResolve(voltage);
+        _pendingAnalogResolve(voltage, raw);
         _pendingAnalogResolve = null;
     }
 };
@@ -157,6 +157,16 @@ const server = net.createServer((socket) => {
             const command = textData.trim();
             let response = null;
             
+            // Извлечь число (напряжение) из строки с мусором, например: t: "18.24"..[ или ult: "3.34"
+            const extractVoltage = (str) => {
+                if (!str || typeof str !== 'string') return null;
+                const inQuotes = str.match(/["']([\d.]+)["']/);
+                if (inQuotes && inQuotes[1]) return parseFloat(inQuotes[1]);
+                const plain = str.match(/\d+\.?\d*/);
+                if (plain && plain[0]) return parseFloat(plain[0]);
+                return null;
+            };
+            
             // Обработка данных от модема/Arduino
             if (command.startsWith('D') && command.length >= 5) {
                 // Команда управления digital pin от модема (формат: D0701 = D + pin 07 + state 01)
@@ -197,25 +207,31 @@ const server = net.createServer((socket) => {
                 const voltage = parseFloat(command);
                 console.log(`[${timestamp}] ✅ Получены данные от аналогового датчика: ${command}`);
                 console.log(`[${timestamp}]    Напряжение: ${voltage} В`);
-                resolvePendingAnalog(voltage);
+                resolvePendingAnalog(voltage, textData);
                 response = null;
                 
             } else if (/ult:\s*"[\d.]+"/.test(command)) {
-                // Формат ult: "3.34" — напряжение от датчика (нормальный ответ, не ошибка)
+                // Формат ult: "3.34" — напряжение от датчика
                 const match = command.match(/ult:\s*"([\d.]+)"/);
                 const voltage = match ? parseFloat(match[1]) : NaN;
                 if (!isNaN(voltage)) {
                     console.log(`[${timestamp}] ✅ Получены данные от аналогового датчика: ult: "${voltage}"`);
-                    console.log(`[${timestamp}]    Напряжение: ${voltage} В`);
-                    resolvePendingAnalog(voltage);
+                    resolvePendingAnalog(voltage, textData);
                 }
                 response = null;
                 
             } else {
-                // Неизвестная команда или формат
-                console.log(`[${timestamp}] ⚠️  Неизвестный формат данных: ${command}`);
-                // Не отправляем ответ на неизвестные данные
-                response = null;
+                // Пробуем извлечь число через regex (форматы типа t: "18.24"..[ или с мусором)
+                const voltage = extractVoltage(command);
+                if (voltage !== null && !isNaN(voltage)) {
+                    console.log(`[${timestamp}] ✅ Извлечено напряжение (regex): ${voltage} В из сырых: ${textData}`);
+                    resolvePendingAnalog(voltage, textData);
+                    response = null;
+                } else {
+                    // Неизвестная команда или формат
+                    console.log(`[${timestamp}] ⚠️  Неизвестный формат данных: ${command}`);
+                    response = null;
+                }
             }
             
             // Отправляем команду управления на модем только если это запрос команды

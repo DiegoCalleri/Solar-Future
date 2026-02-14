@@ -65,6 +65,7 @@ export default function page() {
                                     <th>Канал</th>
                                     <th>Результат</th>
                                     <th>Значение</th>
+                                    <th>RAW (от модема)</th>
                                     <th>мс</th>
                                 </tr>
                             </thead>
@@ -76,6 +77,7 @@ export default function page() {
                                         <td>{entry.number}</td>
                                         <td>{entry.error || (entry.ok ? 'OK' : '—')}</td>
                                         <td>{entry.value != null ? String(entry.value) : '—'}</td>
+                                        <td className={Styles["log__raw"]} title={entry.raw}>{entry.raw || '—'}</td>
                                         <td>{entry.duration}</td>
                                     </tr>
                                 ))}
