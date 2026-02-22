@@ -34,7 +34,7 @@ export default function page() {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const response = await GET(BASE_URL + '/users/me');
+                const response = await GET(BASE_URL + '/me');
                 if (response instanceof Error && response.status === 401) {
                     window.location.href = '/';
                 }
