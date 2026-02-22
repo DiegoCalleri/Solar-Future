@@ -1,6 +1,5 @@
 .card {
     width: 18rem;
-    min-height: 100%;
     display: flex;
     flex-direction: column;
     transition-duration: 1s;

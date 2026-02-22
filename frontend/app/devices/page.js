@@ -31,6 +31,23 @@ export default function page() {
         }
     }, [user])
 
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const response = await GET(BASE_URL + '/users/me');
+                if (response instanceof Error && response.status === 401) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                if (error.status === 401) {
+                    window.location.href = '/';
+                }
+            }
+        };
+        
+        checkAuth();
+    }, []); 
+
     return (
         <>
             {data ? (
