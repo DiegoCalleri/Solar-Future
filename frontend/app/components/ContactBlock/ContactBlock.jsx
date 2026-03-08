@@ -36,6 +36,9 @@ export const ContactBlock = () => {
           {email}
         </a>
       </p>
+      <p className={Styles['contact__text']}>
+        Адрес: Улица Фёдора Шаляпина, 4, с. Новое Шигалеево, Пестречинский район, Республика Татарстан
+      </p>
       <div
         id="yandex-map-container"
         className={Styles['contact__map']}
