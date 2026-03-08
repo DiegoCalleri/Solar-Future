@@ -30,19 +30,23 @@ export const ContactBlock = () => {
   return (
     <section className={Styles['contact']} id="contact">
       <h2 className={Styles['contact__title']}>Свяжитесь с нами</h2>
-      <p className={Styles['contact__text']}>
-        Пишите нам на{' '}
-        <a href={`mailto:${email}`} className={Styles['contact__link']}>
-          {email}
-        </a>
-      </p>
-      <p className={Styles['contact__text']}>
-        Адрес: Улица Фёдора Шаляпина, 4, с. Новое Шигалеево, Пестречинский район, Республика Татарстан
-      </p>
-      <div
-        id="yandex-map-container"
-        className={Styles['contact__map']}
-      />
+      <div className={Styles['contact__content']}>
+        <div
+          id="yandex-map-container"
+          className={Styles['contact__map']}
+        />
+        <div className={Styles['contact__info']}>
+          <p className={Styles['contact__text']}>
+            Пишите нам на{' '}
+            <a href={`mailto:${email}`} className={Styles['contact__link']}>
+              {email}
+            </a>
+          </p>
+          <p className={Styles['contact__text']}>
+            Адрес: Улица Фёдора Шаляпина, 4, с. Новое Шигалеево, Пестречинский район, Республика Татарстан
+          </p>
+        </div>
+      </div>
     </section>
   )
 }
