@@ -79,7 +79,7 @@
 3. Адрес хоста для docker — `host.docker.internal`
 
 #### Деплой на сервер (Docker Hub)
-Образы: `amirowdeniser/solar-future-api`, `amirowdeniser/solar-future-front`.  
+Образы: `amirowdenis/solar-future-api`, `amirowdenis/solar-future-front`.  
 На сервере только `~/solar-deploy/docker-compose.prod.yml` и `.env` — без клонирования репозитория.  
 CI при push в `main`: build → push → `docker compose pull && up`.
 

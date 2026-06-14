@@ -22,8 +22,8 @@ jobs:
           context: ./backend
           push: true
           tags: |
-            amirowdeniser/solar-future-api:latest
-            amirowdeniser/solar-future-api:${{ github.sha }}
+            amirowdenis/solar-future-api:latest
+            amirowdenis/solar-future-api:${{ github.sha }}
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v6
@@ -34,8 +34,8 @@ jobs:
             NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
             NEXT_PUBLIC_EMAIL=${{ vars.NEXT_PUBLIC_EMAIL }}
           tags: |
-            amirowdeniser/solar-future-front:latest
-            amirowdeniser/solar-future-front:${{ github.sha }}
+            amirowdenis/solar-future-front:latest
+            amirowdenis/solar-future-front:${{ github.sha }}
 
   deploy:
     needs: build-and-push
