@@ -1,6 +1,7 @@
 import { Cover } from './components/Cover/Cover'
 import { ContentBlock } from './components/ContentBlock/ContentBlock'
 import { FormOrder } from './components/FormOrder/FormOrder';
+import { ContactBlock } from './components/ContactBlock/ContactBlock';
 import Styles from './page.module.css'
 
 
@@ -25,6 +26,7 @@ export default function Home() {
         <h1 className={Styles["main__form-container-title"]}>Задать вопрос</h1>
         <FormOrder />
       </div>
+      <ContactBlock />
     </main>
   );
 }

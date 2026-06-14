@@ -71,7 +71,9 @@ export default function page() {
                     <Modal.Title>Лог опроса датчиков</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className={Styles["log__body"]}>
-                    {pollLog.length === 0 ? (
+                    {(!data?.digital_pins?.length && !data?.analog_sensors?.length) ? (
+                        <p className="text-muted">Для открытия этой вкладки нужно связаться с администрацией.</p>
+                    ) : pollLog.length === 0 ? (
                         <p className="text-muted">Пока записей нет. Опрос аналоговых датчиков раз в 5 сек.</p>
                     ) : (
                         <table className={Styles["log__table"]}>
