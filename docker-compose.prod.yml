@@ -1,7 +1,9 @@
+name: solar
+
 services:
   api:
     image: amirowdenis/solar-future-api:${IMAGE_TAG:-latest}
-    container_name: backend
+    container_name: solar-backend
     ports:
       - '4000:4000'
       - '7070:7070'
@@ -27,7 +29,7 @@ services:
 
   front:
     image: amirowdenis/solar-future-front:${IMAGE_TAG:-latest}
-    container_name: frontend
+    container_name: solar-frontend
     ports:
       - '3000:3000'
     restart: unless-stopped
@@ -38,7 +40,7 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: postgres
+    container_name: solar-postgres
     ports:
       - "127.0.0.1:5432:5432"
     environment:

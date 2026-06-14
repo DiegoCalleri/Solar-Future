@@ -1,7 +1,9 @@
+name: solar
+
 services:
   api:
     build: ./backend
-    container_name: backend
+    container_name: solar-backend
     ports:
       - '4000:4000'
       - '7070:7070'
@@ -34,7 +36,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
         NEXT_PUBLIC_EMAIL: ${NEXT_PUBLIC_EMAIL}
-    container_name: frontend
+    container_name: solar-frontend
     ports:
       - '3000:3000'
     restart: unless-stopped
@@ -45,7 +47,7 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: postgres
+    container_name: solar-postgres
     ports:
       - "127.0.0.1:5432:5432"
     environment:
