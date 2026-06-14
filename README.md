@@ -1,13 +1,13 @@
 # Solar Future
 
-Веб-приложение для мониторинга параметров солнечной панели SDM-50 и управления реле: Arduino, Node.js, Next.js, MongoDB.
+Веб-приложение для мониторинга параметров солнечной панели SDM-50 и управления реле: Arduino, Node.js, Next.js, PostgreSQL.
 
 ## Стек и структура
 
 | Часть       | Технологии              | Папка    |
 |------------|--------------------------|----------|
-| Backend API| Node.js, Express, MongoDB, JWT | `api/`   |
-| Frontend   | Next.js, React, Redux    | `next/`  |
+| Backend API| Node.js, Express, PostgreSQL, JWT | `backend/`   |
+| Frontend   | Next.js, React, Redux    | `frontend/`  |
 | Железо     | Arduino                  | `hardware/` |
 
 **Нормы проекта:**
@@ -74,19 +74,23 @@
 
 
 #### Запуск c использованием Docker
-1. docker up docker-compose.yml
-2. Адрес хоста для docker - host.docker.internal
+1. Скопировать `backend/.env.example` в `.env` в корне (или задать переменные в shell)
+2. `docker compose up -d --build`
+3. Адрес хоста для docker — `host.docker.internal`
+
+#### Деплой на сервер (Docker Hub)
+Образы: `amirowdeniser/solar-future-api`, `amirowdeniser/solar-future-front`.  
+На сервере только `~/solar-deploy/docker-compose.prod.yml` и `.env` — без клонирования репозитория.  
+CI при push в `main`: build → push → `docker compose pull && up`.
 
 
 #### Запуск без использования Docker
 ##### Запуск backend
-1. cd api
+1. cd backend
 2. npm i
-3. npm run dev
+3. PostgreSQL локально, `DATABASE_URL` в `.env`
+4. npm run dev
 ##### Запуск frontend
-1. cd next 
+1. cd frontend
 2. npm i
 3. npm run dev
-##### Запуск mongod
-1. cd mongo/db 
-2. mongod --dbpath ./ --port 27017

@@ -1,17 +1,17 @@
 services:
   api:
-    build: ./backend
+    image: amirowdeniser/solar-future-api:${IMAGE_TAG:-latest}
     container_name: backend
     ports:
       - '4000:4000'
       - '7070:7070'
     environment:
-      - DATABASE_URL=postgresql://solar:${POSTGRES_PASSWORD:-solar}@postgres:5432/solar
-      - CORS_ORIGINS=${CORS_ORIGINS}
-      - API_KEY=${API_KEY}
-      - JWT_SECRET=${JWT_SECRET}
-      - ADMIN_EMAIL=${ADMIN_EMAIL:-}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      DATABASE_URL: postgresql://solar:${POSTGRES_PASSWORD}@postgres:5432/solar
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      API_KEY: ${API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     restart: unless-stopped
     deploy:
       resources:
@@ -20,20 +20,13 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./backend:/app
-      - /app/node_modules
       - uploads_data:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
-    command: npm run dev
 
   front:
-    build:
-      context: ./frontend
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-        NEXT_PUBLIC_EMAIL: ${NEXT_PUBLIC_EMAIL}
+    image: amirowdeniser/solar-future-front:${IMAGE_TAG:-latest}
     container_name: frontend
     ports:
       - '3000:3000'
@@ -50,7 +43,7 @@ services:
       - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_USER: solar
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-solar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: solar
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -60,6 +53,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: unless-stopped
     deploy:
       resources:
         limits:

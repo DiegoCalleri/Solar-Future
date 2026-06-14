@@ -5,9 +5,54 @@ on:
     branches: [main]
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            amirowdeniser/solar-future-api:latest
+            amirowdeniser/solar-future-api:${{ github.sha }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_EMAIL=${{ vars.NEXT_PUBLIC_EMAIL }}
+          tags: |
+            amirowdeniser/solar-future-front:latest
+            amirowdeniser/solar-future-front:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy compose file to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: docker-compose.prod.yml
+          target: ~/solar-deploy/
+
       - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -17,18 +62,13 @@ jobs:
           port: ${{ secrets.SSH_PORT || 22 }}
           command_timeout: 30m
           script: |
-            export NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}"
-            export NEXT_PUBLIC_EMAIL="${{ vars.NEXT_PUBLIC_EMAIL }}"
-            export CORS_ORIGINS="${{ vars.CORS_ORIGINS }}"
-            export API_KEY="${{ secrets.API_KEY }}"
+            cd ~/solar-deploy
+            export POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
             export JWT_SECRET="${{ vars.JWT_SECRET }}"
-            cd ~/Solar-Future
-            git pull origin main
-            # Создаём volumes явно перед деплоем (если их нет)
-            # Имя volume формируется как {project_name}_{volume_name}, где project_name = имя директории
-            PROJECT_NAME=$(basename $(pwd) | tr '[:upper:]' '[:lower:]' | tr -d ' ')
-            docker volume create ${PROJECT_NAME}_mongodb_data 2>/dev/null || true
-            docker volume create ${PROJECT_NAME}_uploads_data 2>/dev/null || true
-            # Важно: --force-recreate пересоздаёт контейнеры, но НЕ удаляет volumes
-            docker compose up -d --build --force-recreate
-            docker exec backend npm install || echo "Зависимости уже установлены или контейнер не запущен"
+            export API_KEY="${{ secrets.API_KEY }}"
+            export CORS_ORIGINS="${{ vars.CORS_ORIGINS }}"
+            export IMAGE_TAG="${{ github.sha }}"
+            docker volume create solar-deploy_postgres_data 2>/dev/null || true
+            docker volume create solar-deploy_uploads_data 2>/dev/null || true
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --force-recreate

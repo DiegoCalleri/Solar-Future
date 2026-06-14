@@ -16,7 +16,7 @@ const createOrders = async (req, res, next) => {
 const findAllOrders = async (req, res, next) => {
     console.log('GET /orders')
     try {
-        req.orders = await orders.find({}).sort({ date: -1 }); // Сортировка по дате (новые сначала)
+        req.orders = await orders.find();
         next();
     } catch (err) {
         res.status(500).send({ message: "Ошибка при получении заказов" });

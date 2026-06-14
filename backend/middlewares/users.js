@@ -4,9 +4,7 @@ const bcrypt = require("bcryptjs");
 
 const findAllUsers = async (req, res, next) => {
     console.log('GET /users')
-    req.user = await users.find({})
-        .populate('digital_pins')
-        .populate('analog_sensors');
+    req.user = await users.find();
 
     next()
 }
@@ -59,7 +57,7 @@ const createUser = async (req, res, next) => {
 const updateUser = async (req, res, next) => {
     console.log("PUT /users/:id");
     try {
-        req.user = await users.findByIdAndUpdate(req.params.id, req.body);
+        req.user = await users.update(req.params.id, req.body);
         if (!req.user) {
             return res.status(404).send({ message: "Пользователь не найден" });
         }
@@ -130,9 +128,7 @@ const hashPassword = async(req, res, next) => {
 
 const findUserByIdDevices = async (req, res, next) => {
     try {
-        req.user = await users.findById(req.params.id)
-            .populate('digital_pins')
-            .populate('analog_sensors');
+        req.user = await users.findByIdWithDevices(req.params.id)
         if (!req.user) {
             return res.status(404).send({ message: "Пользователь не найден" });
         }

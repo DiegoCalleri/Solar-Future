@@ -1,7 +1,7 @@
 const team_members = require('../models/team_members');
 
 const findAllTeamMembers = async (req, res, next) => {
-    const all = await team_members.find({}).sort({ createdAt: 1 });
+    const all = await team_members.find();
     req.teamMembersArray = all.sort((a, b) => {
         const order = { руководитель: 0, участник: 1 };
         return (order[a.group] ?? 1) - (order[b.group] ?? 1);

@@ -11,5 +11,4 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY . .
 EXPOSE 4000
 
-
-CMD ["npm","run","dev"]
+CMD ["node", "app.js"]
