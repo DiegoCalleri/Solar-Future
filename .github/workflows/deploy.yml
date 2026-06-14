@@ -63,6 +63,7 @@ jobs:
           command_timeout: 30m
           script: |
             cd ~/solar-deploy
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             export POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
             export JWT_SECRET="${{ vars.JWT_SECRET }}"
             export API_KEY="${{ secrets.API_KEY }}"
